@@ -11,5 +11,6 @@ export type FooterLink = {
 export type LogoConfig = {
   logoPath: string;
   markPath: string;
-  altText: string;
+  logoAltText: string;
+  markAltText: string;
 };

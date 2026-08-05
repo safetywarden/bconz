@@ -11,7 +11,7 @@ export function Footer() {
               <div className="relative h-12 w-12 flex-shrink-0">
                 <Image
                   src={logoConfig.markPath}
-                  alt={logoConfig.altText}
+                  alt={logoConfig.markAltText}
                   width={56}
                   height={56}
                   className="object-contain"

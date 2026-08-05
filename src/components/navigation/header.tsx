@@ -43,7 +43,7 @@ export function Header() {
           <div className="relative h-[38px] sm:h-[44px] md:h-[52px] flex-shrink-0 min-w-[220px]">
             <Image
               src={logoConfig.logoPath}
-              alt={logoConfig.altText}
+              alt={logoConfig.logoAltText}
               width={420}
               height={120}
               priority
