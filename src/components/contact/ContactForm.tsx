@@ -8,29 +8,29 @@ import { validateContactForm } from "@/lib/forms/ValidationHelpers";
 import type { ContactFormSchema } from "@/lib/forms/ContactFormSchema";
 
 const organizationTypes = [
-  "Hospital",
-  "Research Institute",
-  "Biobank",
+  "Hospital or Healthcare Network",
+  "Cancer Centre",
   "Diagnostic Laboratory",
   "Genomics Laboratory",
-  "Pharmaceutical",
-  "Biotechnology",
-  "Healthcare AI",
+  "Biobank",
+  "Research Institute",
+  "Pharmaceutical Company",
+  "Biotechnology Company",
+  "Healthcare AI Company",
   "CRO",
-  "Medical Device",
+  "Medical Device or Digital Health",
+  "Government or Public Sector",
   "Investor",
-  "Government",
   "Other",
 ];
 
 const interestAreas = [
-  "Research Data",
-  "Healthcare Partnership",
-  "Scientific Collaboration",
-  "Technology Partnership",
-  "Speaking Invitation",
-  "Media",
   "General Enquiry",
+  "Strategic Partnership",
+  "Technology Partnership",
+  "Scientific Collaboration",
+  "Media or Speaking",
+  "Other",
 ];
 
 export function ContactForm() {
@@ -107,6 +107,9 @@ export function ContactForm() {
           {errors.form}
         </div>
       ) : null}
+      <div className="mb-4 text-sm text-slate-700">
+        If you are requesting Research Data or want to become a Data Partner, please use the dedicated options above to access the correct workflow.
+      </div>
       <form onSubmit={onSubmit} className="space-y-6" noValidate>
         <div className="grid gap-6 lg:grid-cols-2">
           <label className="block">

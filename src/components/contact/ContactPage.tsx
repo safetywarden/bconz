@@ -9,37 +9,23 @@ import { ContactForm } from "@/components/contact/ContactForm";
 
 const contactOptions: { title: string; description: string; actionLabel?: string; actionHref?: string; icon: IconName }[] = [
   {
-    title: "General Enquiries",
-    description: "Questions about BCONZ partnerships, research collaboration, or site engagement.",
-    actionLabel: "Contact Us",
-    actionHref: "/contact#contact-form",
-    icon: "research",
-  },
-  {
-    title: "Healthcare Partnerships",
-    description: "Start a conversation about institution-led healthcare data partnerships.",
-    actionLabel: "Request a Discussion",
-    actionHref: "/contact#contact-form",
-    icon: "partnership",
-  },
-  {
-    title: "Research Projects",
-    description: "Discuss research needs, project scope and collaboration opportunities.",
+    title: "Research Data",
+    description: "Discuss disease areas, cohort criteria, data modalities and research objectives.",
     actionLabel: "Request Research Data",
     actionHref: "/request-data",
     icon: "research",
   },
   {
-    title: "Speaking & Events",
-    description: "Invitations for talks, panels and workshops.",
-    actionLabel: "Contact Our Team",
-    actionHref: "/contact#contact-form",
-    icon: "trust",
+    title: "Healthcare Data Partnerships",
+    description: "Explore collaboration opportunities for hospitals, laboratories, biobanks and research institutions.",
+    actionLabel: "Become a Data Partner",
+    actionHref: "/data-partners",
+    icon: "partnership",
   },
   {
-    title: "Media",
-    description: "Press and media enquiries about BCONZ and our work.",
-    actionLabel: "Contact Our Team",
+    title: "General & Strategic Enquiries",
+    description: "Strategic partnerships, events, media, technology or corporate matters.",
+    actionLabel: "Start an Enquiry",
     actionHref: "/contact#contact-form",
     icon: "trust",
   },
@@ -48,51 +34,34 @@ const contactOptions: { title: string; description: string; actionLabel?: string
 export function ContactPage() {
   return (
     <main>
-      <Section className="bg-slate-50">
+      {/* Compact hero */}
+      <Section className="bg-white">
         <Container>
-          <div className="grid gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
-            <div className="max-w-2xl space-y-6">
-              <p className="text-sm font-semibold uppercase tracking-[0.3em] text-teal-600">Contact</p>
-              <h1 className="text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">Let&apos;s Start a Conversation</h1>
-              <p className="text-lg leading-8 text-slate-700">
-                Whether you represent a healthcare organization, pharmaceutical company, biotechnology company, research institute
-                or healthcare AI company, we&apos;d be pleased to discuss how BCONZ can support your research initiatives.
-              </p>
-              <div className="mt-6 flex flex-wrap gap-3">
-                <Button as="a" href="/request-data" variant="primary" size="large">
-                  Request Research Data
-                </Button>
-                <Button as="a" href="/data-partners" variant="secondary" size="large">
-                  Become a Data Partner
-                </Button>
-              </div>
-            </div>
-
-            <div className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm">
-              <div className="space-y-6">
-                <div className="rounded-[1.75rem] bg-slate-950 p-6 text-white">
-                  <p className="text-sm uppercase tracking-[0.24em] text-teal-300">Get in touch</p>
-                  <p className="mt-4 text-base leading-7">Start a conversation about research, partnerships or events.</p>
-                </div>
-                <div className="grid gap-4">
-                  {contactOptions.map((item) => (
-                    <ContactOptionCard key={item.title} {...item} />
-                  ))}
-                </div>
-              </div>
+          <div className="mx-auto max-w-3xl text-center py-12">
+            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-teal-600">Contact BCONZ</p>
+            <h1 className="mt-4 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">Let&apos;s Discuss Your Research or Partnership Goals</h1>
+            <p className="mt-4 text-lg leading-7 text-slate-700">
+              Whether you represent a healthcare organization, pharmaceutical company, biotechnology company, research institution or
+              healthcare AI team, BCONZ would welcome the opportunity to understand your priorities and explore a potential collaboration.
+            </p>
+            <div className="mt-6">
+              <Button as="a" href="#contact-form" variant="primary" size="large">
+                Start Your Enquiry
+              </Button>
             </div>
           </div>
         </Container>
       </Section>
 
+      {/* Enquiry pathways */}
       <Section>
         <Container>
           <div className="mx-auto max-w-4xl space-y-6 text-center">
-            <Label>Contact Options</Label>
-            <Heading>Professional inquiry support for every team</Heading>
-            <Subheading>Select the area that best matches your partnership or research interest and send us a message.</Subheading>
+            <Label>How Can We Help?</Label>
+            <Heading>Enquiry pathways</Heading>
+            <Subheading>Choose the option that best matches your needs to speed up our response.</Subheading>
           </div>
-          <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-10 grid gap-6 md:grid-cols-3">
             {contactOptions.map((opt) => (
               <ContactOptionCard key={opt.title} {...opt} large />
             ))}
@@ -100,14 +69,29 @@ export function ContactPage() {
         </Container>
       </Section>
 
+      {/* General contact form */}
       <Section className="bg-slate-50">
         <Container>
           <div className="mx-auto max-w-5xl space-y-6 text-center">
-            <Label>Global Presence</Label>
-            <Heading>Our offices</Heading>
+            <Label>Send Us a Message</Label>
+            <Heading>Share a few details and we&apos;ll review your enquiry</Heading>
+            <Subheading>Provide basic details below and the appropriate BCONZ team member will review your enquiry.</Subheading>
+          </div>
+          <div id="contact-form" className="mt-8 w-full">
+            <ContactForm />
+          </div>
+        </Container>
+      </Section>
+
+      {/* Global presence */}
+      <Section>
+        <Container>
+          <div className="mx-auto max-w-4xl space-y-6 text-center">
+            <Label>Our Offices</Label>
+            <Heading>Global Presence</Heading>
             <Subheading>BCONZ operates across regions — contact the office nearest you.</Subheading>
           </div>
-          <div className="mt-12 grid gap-6 md:grid-cols-2">
+          <div className="mt-8 grid gap-6 md:grid-cols-2">
             <OfficeCard
               title="India Headquarters"
               lines={[
@@ -117,7 +101,7 @@ export function ContactPage() {
                 "India",
               ]}
               phone="+91 7624841555"
-              actionHref="/contact#contact-form"
+              actionHref="#contact-form"
             />
             <OfficeCard
               title="Singapore Office"
@@ -128,23 +112,26 @@ export function ContactPage() {
                 "Singapore 409051",
               ]}
               phone=""
-              actionHref="/contact#contact-form"
+              actionHref="#contact-form"
             />
           </div>
         </Container>
       </Section>
 
-      <Section>
+      {/* Final CTA */}
+      <Section className="bg-white">
         <Container>
-          <div className="mx-auto max-w-4xl space-y-6">
-            <Label>Contact Form</Label>
-            <Heading>Start a partnership conversation</Heading>
-            <Subheading>
-              Provide details about your organization and the best way to contact you. We&apos;ll respond promptly with next steps.
-            </Subheading>
-          </div>
-            <div id="contact-form" className="mt-8">
-            <ContactForm />
+          <div className="mx-auto max-w-3xl text-center py-12">
+            <Label>Looking for Research Data or Representing a Healthcare Institution?</Label>
+            <Heading>Request Research Data or Become a Data Partner</Heading>
+            <div className="mt-6 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+              <Button as="a" href="/request-data" variant="primary" size="large">
+                Request Research Data
+              </Button>
+              <Button as="a" href="/data-partners" variant="secondary" size="large">
+                Become a Data Partner
+              </Button>
+            </div>
           </div>
         </Container>
       </Section>
