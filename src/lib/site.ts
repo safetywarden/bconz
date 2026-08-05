@@ -28,8 +28,8 @@ export const footerLinks: FooterLink[] = [
 ];
 
 export const logoConfig: LogoConfig = {
-  logoPath: "/images/brand/bconz-logo-horizontal.png",
-  markPath: "/images/brand/bconz-icon.png",
+  logoPath: "/Images/brand/bconz-logo.png",
+  markPath: "/Images/brand/bconz-icon.png",
   logoAltText: "BCONZ logo",
   markAltText: "BCONZ mark",
 };
