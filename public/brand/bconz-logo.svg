@@ -1,0 +1,12 @@
+<svg viewBox="0 0 320 80" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="bconzLogoTitle">
+  <title id="bconzLogoTitle">BCONZ Logo</title>
+  <defs>
+    <linearGradient id="gradient" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#0b5f8a" />
+      <stop offset="100%" stop-color="#0d9aa8" />
+    </linearGradient>
+  </defs>
+  <rect width="320" height="80" rx="20" fill="#0f172a" />
+  <path d="M42 22H26a4 4 0 0 1-4-4V18a4 4 0 0 1 4-4h16a4 4 0 0 1 4 4v0a4 4 0 0 1-4 4Zm0 20H26a4 4 0 0 1-4-4V34a4 4 0 0 1 4-4h16a4 4 0 0 1 4 4v0a4 4 0 0 1-4 4Z" fill="url(#gradient)" />
+  <text x="112" y="50" fill="#ffffff" font-family="Inter, sans-serif" font-size="32" font-weight="700">BCONZ</text>
+</svg>

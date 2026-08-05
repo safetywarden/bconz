@@ -1,0 +1,6 @@
+<svg viewBox="0 0 160 60" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="partner2Title">
+  <title id="partner2Title">Partner logo</title>
+  <rect width="160" height="60" rx="14" fill="#effcf6" />
+  <rect x="22" y="18" width="24" height="24" rx="6" fill="#0d9aa8" />
+  <text x="62" y="36" fill="#0f172a" font-family="Inter, sans-serif" font-size="20" font-weight="600">CURA</text>
+</svg>
