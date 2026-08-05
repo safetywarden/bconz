@@ -33,22 +33,22 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50">
       <div
-        className={`flex items-center justify-between gap-6 border-b border-slate-200/70 px-6 py-4 transition-all backdrop-blur-xl ${
+        className={`flex items-center justify-between gap-8 border-b border-slate-200/70 px-6 py-5 transition-all backdrop-blur-xl ${
           isScrolled
             ? "bg-white/95 shadow-sm"
             : "bg-transparent"
         }`}
       >
-        <Link href="/" className="flex items-center gap-3">
-          <div className="relative h-[38px] sm:h-[44px] md:h-[52px] flex-shrink-0 min-w-[220px]">
+        <Link href="/" className="flex items-center gap-4">
+          <div className="relative h-[46px] sm:h-[54px] md:h-[64px] flex-shrink-0 min-w-[240px]">
             <Image
               src={logoConfig.logoPath}
               alt={logoConfig.logoAltText}
               width={420}
               height={120}
               priority
-              sizes="(max-width: 640px) 160px, (max-width: 1024px) 220px, 260px"
-              className="h-[38px] w-auto object-contain md:h-[44px] lg:h-[52px]"
+              sizes="(max-width: 640px) 180px, (max-width: 1024px) 260px, 320px"
+              className="h-[46px] w-auto object-contain sm:h-[54px] md:h-[64px]"
             />
           </div>
         </Link>
