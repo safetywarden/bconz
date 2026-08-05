@@ -1,4 +1,4 @@
-import type { SVGProps } from "react";
+import type { ReactElement, SVGProps } from "react";
 
 export type IconName =
   | "clinical"
@@ -14,7 +14,7 @@ export type IconName =
   | "research"
   | "data";
 
-const iconMap: Record<IconName, (props: SVGProps<SVGSVGElement>) => JSX.Element> = {
+const iconMap: Record<IconName, (props: SVGProps<SVGSVGElement>) => ReactElement> = {
   clinical: (props) => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}>
       <path d="M10 3h4v4h-4z" />

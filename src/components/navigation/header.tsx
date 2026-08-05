@@ -29,19 +29,18 @@ export function Header() {
         }`}
       >
         <Link href="/" className="flex items-center gap-3">
-          <div className="relative h-10 w-10 overflow-hidden rounded-2xl bg-slate-950/5 ring-1 ring-slate-900/10">
+          <div className="relative h-10 w-[180px] overflow-hidden rounded-2xl bg-white">
             <Image
-              src={logoConfig.markPath}
-              alt={`${logoConfig.altText} mark`}
+              src={logoConfig.logoPath}
+              alt={logoConfig.altText}
               fill
-              sizes="40px"
+              sizes="(max-width: 768px) 140px, 180px"
               className="object-contain"
             />
           </div>
-          <div>
-            <p className="text-sm font-semibold tracking-[0.18em] text-slate-900/90">{logoConfig.altText}</p>
-            <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Enterprise healthcare</p>
-          </div>
+          <p className="text-xs uppercase tracking-[0.28em] text-slate-500">
+            Healthcare Data. Life Sciences Impact.
+          </p>
         </Link>
 
         <nav className="hidden items-center gap-8 md:flex">

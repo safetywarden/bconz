@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { footerLinks } from "@/lib/site";
 
 const footerGroups = [
   {
