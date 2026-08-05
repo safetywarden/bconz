@@ -9,7 +9,7 @@ export const metadataBase = new URL("https://bconz.com");
 
 export const navigation: NavItem[] = [
   { title: "Home", href: "/" },
-  { title: "Data", href: "/data" },
+  { title: "Research Data", href: "/data" },
   { title: "Solutions", href: "/solutions" },
   { title: "Data Partners", href: "/data-partners" },
   { title: "Insights", href: "/insights" },
@@ -28,8 +28,8 @@ export const footerLinks: FooterLink[] = [
 ];
 
 export const logoConfig: LogoConfig = {
-  logoPath: "/Images/Brand_canvas/bconz-logo-horizontal.png.png",
-  markPath: "/brand/bconz-mark.svg",
+  logoPath: "/Images/Brand_canvas/bconz-logo-primary.png.png",
+  markPath: "/Images/Brand_canvas/bconz-icon.png",
   altText: "BCONZ logo",
 };
 

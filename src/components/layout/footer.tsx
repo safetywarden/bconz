@@ -1,17 +1,23 @@
 import Link from "next/link";
-import { footerLinks, socialLinks, siteName } from "@/lib/site";
+import Image from "next/image";
+import { footerLinks, socialLinks, siteName, logoConfig } from "@/lib/site";
 
 export function Footer() {
   return (
     <footer className="border-t border-slate-200/80 bg-slate-950 text-slate-200">
       <div className="mx-auto flex max-w-7xl flex-col gap-10 px-6 py-16 lg:px-8">
         <div className="grid gap-8 md:grid-cols-[2fr_1fr]">
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.26em] text-teal-300">{siteName}</p>
-            <p className="mt-4 max-w-xl text-sm leading-7 text-slate-300">
-              BCONZ builds governance-forward healthcare data partnerships that deliver clinical, research, and AI-ready datasets for enterprise-grade scientific programs.
-            </p>
-          </div>
+          <div className="flex items-start gap-4">
+              <div className="relative h-10 w-10 flex-shrink-0">
+                <Image src={logoConfig.markPath} alt="BCONZ" fill sizes="40px" className="object-contain" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-[0.26em] text-teal-300">{siteName}</p>
+                <p className="mt-4 max-w-xl text-sm leading-7 text-slate-300">
+                  BCONZ builds governance-forward healthcare data partnerships that deliver clinical, research, and AI-ready datasets for enterprise-grade scientific programs.
+                </p>
+              </div>
+            </div>
 
           <div className="grid gap-6 sm:grid-cols-2">
             <div>
