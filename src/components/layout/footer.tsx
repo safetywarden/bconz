@@ -9,7 +9,13 @@ export function Footer() {
         <div className="grid gap-8 md:grid-cols-[2fr_1fr]">
           <div className="flex items-start gap-4">
               <div className="relative h-12 w-12 flex-shrink-0">
-                <Image src={logoConfig.markPath} alt="BCONZ" width={56} height={56} className="object-contain" />
+                <Image
+                  src={logoConfig.markPath}
+                  alt={logoConfig.altText}
+                  width={56}
+                  height={56}
+                  className="object-contain"
+                />
               </div>
               <div>
                 <p className="text-sm font-semibold uppercase tracking-[0.26em] text-teal-300">{siteName}</p>
