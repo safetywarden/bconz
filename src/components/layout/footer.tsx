@@ -8,8 +8,8 @@ export function Footer() {
       <div className="mx-auto flex max-w-7xl flex-col gap-10 px-6 py-16 lg:px-8">
         <div className="grid gap-8 md:grid-cols-[2fr_1fr]">
           <div className="flex items-start gap-4">
-              <div className="relative h-10 w-10 flex-shrink-0">
-                <Image src={logoConfig.markPath} alt="BCONZ" fill sizes="40px" className="object-contain" />
+              <div className="relative h-12 w-12 flex-shrink-0">
+                <Image src={logoConfig.markPath} alt="BCONZ" width={56} height={56} className="object-contain" />
               </div>
               <div>
                 <p className="text-sm font-semibold uppercase tracking-[0.26em] text-teal-300">{siteName}</p>

@@ -40,12 +40,13 @@ export function Header() {
         }`}
       >
         <Link href="/" className="flex items-center gap-3">
-          <div className="relative h-9 sm:h-10 md:h-11 lg:h-14 w-[160px] sm:w-[180px] md:w-[200px] lg:w-[260px] overflow-hidden">
+          <div className="relative h-[38px] sm:h-[44px] md:h-[52px] min-w-[180px] overflow-hidden">
             <Image
               src={logoConfig.logoPath}
               alt={logoConfig.altText}
-              fill
-              sizes="(max-width: 640px) 140px, (max-width: 1024px) 180px, 240px"
+              width={520}
+              height={104}
+              sizes="(max-width: 640px) 160px, (max-width: 1024px) 220px, 260px"
               className="object-contain"
             />
           </div>

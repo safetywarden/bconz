@@ -40,7 +40,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
                 "@type": "Organization",
                 name: "Bconz International (OPC) Pvt Ltd",
                 url: metadataBase.toString(),
-                logo: new URL("/Images/Brand_canvas/bconz-logo-horizontal.png.png", metadataBase).toString(),
+                logo: new URL("/images/brand/bconz-logo-horizontal.png", metadataBase).toString(),
                 contactPoint: [
                   {
                     "@type": "ContactPoint",
