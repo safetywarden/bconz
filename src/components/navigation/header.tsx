@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { logoConfig, navigation } from "@/lib/site";
@@ -8,16 +9,17 @@ import { logoConfig, navigation } from "@/lib/site";
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const pathname = usePathname();
 
-  useEffect(() => {
-    const onScroll = () => {
-      setIsScrolled(window.scrollY > 24);
-    };
+    useEffect(() => {
+      const onScroll = () => {
+        setIsScrolled(window.scrollY > 24);
+      };
 
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+      onScroll();
+      window.addEventListener("scroll", onScroll, { passive: true });
+      return () => window.removeEventListener("scroll", onScroll);
+    }, []);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -53,15 +55,19 @@ export function Header() {
         </Link>
 
         <nav className="hidden items-center gap-8 md:flex">
-          {navigation.map((item) => (
-            <Link
-              key={item.title}
-              href={item.href}
-              className="text-sm font-medium text-slate-700 transition-colors hover:text-slate-950"
-            >
-              {item.title}
-            </Link>
-          ))}
+          {navigation.map((item) => {
+            const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
+            return (
+              <Link
+                key={item.title}
+                href={item.href}
+                className={`text-sm font-medium transition-colors ${isActive ? "text-slate-900" : "text-slate-700 hover:text-slate-950"}`}
+                aria-current={isActive ? "page" : undefined}
+              >
+                {item.title}
+              </Link>
+            );
+          })}
         </nav>
 
         <div className="flex items-center gap-3">
@@ -69,7 +75,7 @@ export function Header() {
             href="/contact"
             className="hidden rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-950 transition hover:border-slate-300 hover:bg-slate-50 md:inline-flex"
           >
-            Contact
+            Contact Us
           </Link>
           <button
             type="button"
@@ -89,16 +95,20 @@ export function Header() {
       {menuOpen ? (
         <div className="border-b border-slate-200/70 bg-white/95 px-6 py-6 shadow-sm md:hidden">
           <div className="space-y-4">
-            {navigation.map((item) => (
-              <Link
-                key={item.title}
-                href={item.href}
-                className="block rounded-3xl px-4 py-3 text-sm font-medium text-slate-800 transition-colors hover:bg-slate-50"
-                onClick={() => setMenuOpen(false)}
-              >
-                {item.title}
-              </Link>
-            ))}
+            {navigation.map((item) => {
+              const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
+              return (
+                <Link
+                  key={item.title}
+                  href={item.href}
+                  className={`block rounded-3xl px-4 py-3 text-sm font-medium transition-colors ${isActive ? "bg-slate-50 text-slate-900" : "text-slate-800 hover:bg-slate-50"}`}
+                  onClick={() => setMenuOpen(false)}
+                  aria-current={isActive ? "page" : undefined}
+                >
+                  {item.title}
+                </Link>
+              );
+            })}
           </div>
         </div>
       ) : null}

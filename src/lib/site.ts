@@ -14,7 +14,7 @@ export const navigation: NavItem[] = [
   { title: "Data Partners", href: "/data-partners" },
   { title: "Insights", href: "/insights" },
   { title: "About", href: "/about" },
-  { title: "Contact", href: "/contact" },
+  // Contact is provided as a primary CTA instead of a navigation item
 ];
 
 export const footerLinks: FooterLink[] = [
