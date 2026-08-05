@@ -51,7 +51,7 @@ export function HeroSection() {
                   rounded-3xl bg-white p-4 shadow-lg">
                   <Image
                     src={logoConfig.logoPath}
-                    alt={logoConfig.altText}
+                    alt={logoConfig.logoAltText}
                     fill
                     sizes="(max-width: 768px) 240px, 320px"
                     className="object-contain"
