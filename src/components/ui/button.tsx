@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes } from "react";
+import type { AnchorHTMLAttributes, ButtonHTMLAttributes } from "react";
 
 const baseStyles =
   "inline-flex items-center justify-center rounded-full border px-6 py-3 text-base font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60";
@@ -14,23 +14,26 @@ const sizes: Record<string, string> = {
   large: "h-14 px-8 text-lg",
 };
 
-export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
+export type ButtonProps = (ButtonHTMLAttributes<HTMLButtonElement> | AnchorHTMLAttributes<HTMLAnchorElement>) & {
   variant?: "primary" | "secondary" | "ghost";
   size?: "normal" | "large";
+  as?: "button" | "a";
 };
 
 export function Button({
   className = "",
   variant = "primary",
   size = "normal",
+  as = "button",
   ...props
 }: ButtonProps) {
-  return (
-    <button
-      className={[baseStyles, variants[variant] ?? variants.primary, sizes[size] ?? sizes.normal, className]
-        .filter(Boolean)
-        .join(" ")}
-      {...props}
-    />
-  );
+  const classNames = [baseStyles, variants[variant] ?? variants.primary, sizes[size] ?? sizes.normal, className]
+    .filter(Boolean)
+    .join(" ");
+
+  if (as === "a") {
+    return <a className={classNames} {...(props as AnchorHTMLAttributes<HTMLAnchorElement>)} />;
+  }
+
+  return <button className={classNames} {...(props as ButtonHTMLAttributes<HTMLButtonElement>)} />;
 }
