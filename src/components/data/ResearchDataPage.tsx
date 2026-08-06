@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import Link from "next/link";
 import { Heading, Label, Subheading } from "@/components/ui/typography";
 import { Container } from "@/components/layout/container";
 import { Section } from "@/components/layout/section";
@@ -183,12 +184,15 @@ export function ResearchDataPage() {
               <p className="text-lg leading-8 text-slate-700">
                 BCONZ helps connect healthcare organizations with life sciences researchers through governed access to research-ready clinical, molecular and real-world healthcare data.
               </p>
+              <p className="text-base leading-7 text-slate-700">
+                Explore how these data capabilities support <Link href="/solutions" className="font-semibold text-slate-950 underline underline-offset-4">life sciences and healthcare AI solutions</Link>, or discuss an institution-led collaboration through our <Link href="/data-partners" className="font-semibold text-slate-950 underline underline-offset-4">healthcare data partnership pathway</Link>.
+              </p>
               <div className="flex flex-col gap-4 sm:flex-row">
                 <Button variant="primary" size="large" as="a" href="/request-data">
                   Request Research Data
                 </Button>
                 <Button variant="secondary" size="large" as="a" href="/contact">
-                  Talk to Our Team
+                  Contact BCONZ
                 </Button>
               </div>
             </div>
@@ -255,7 +259,7 @@ export function ResearchDataPage() {
             <Label>Research Data Modalities</Label>
             <Heading>Data types built for scientific collaboration</Heading>
             <Subheading>
-              Premium datasets arranged for researchers, sponsors and healthcare organizations in an enterprise-ready platform.
+              Research-ready healthcare data is organized for researchers, sponsors and healthcare organizations through governed collaboration, not open-ended data brokerage.
             </Subheading>
           </div>
 
@@ -396,7 +400,7 @@ export function ResearchDataPage() {
             <Label>Frequently Requested Data</Label>
             <Heading>Modern FAQs for research-ready datasets</Heading>
             <Subheading>
-              Accessible answers to common research questions about cohort design, governance and collaboration.
+              Accessible answers to common research questions about cohort design, governance and collaboration. For a specific study, use the <Link href="/request-data" className="font-semibold text-slate-950 underline underline-offset-4">research data request form</Link>.
             </Subheading>
           </div>
 

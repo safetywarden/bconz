@@ -13,16 +13,12 @@ export function ArticleCard({ article }: { article: InsightArticle }) {
         <div className="flex flex-wrap items-center gap-3 text-sm text-slate-500">
           <span>{article.category}</span>
           <span>•</span>
-          <span>{article.readingTime}</span>
+          <span>Unpublished planning topic</span>
         </div>
         <h3 className="text-xl font-semibold text-slate-950">{article.title}</h3>
         <p className="text-sm leading-6 text-slate-600">{article.summary}</p>
-        <div className="flex items-center justify-between gap-4 text-sm text-slate-500">
-          <span>{article.author}</span>
-          <span>{article.date}</span>
-        </div>
         <Button variant="secondary" size="normal" as="a" href="/contact">
-          Discuss this insight
+          Discuss Your Research
         </Button>
       </div>
     </Card>

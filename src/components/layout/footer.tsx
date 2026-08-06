@@ -64,7 +64,14 @@ export function Footer() {
           {socialLinks.length ? (
             <div className="flex flex-wrap items-center gap-4 text-sm text-slate-300">
               {socialLinks.map((item) => (
-                <Link key={item.title} href={item.href} className="transition-colors hover:text-white">
+                <Link
+                  key={item.title}
+                  href={item.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={item.label}
+                  className="transition-colors hover:text-white"
+                >
                   {item.title}
                 </Link>
               ))}

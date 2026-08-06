@@ -1,6 +1,7 @@
 import type { IconName } from "@/components/ui/icon";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import Link from "next/link";
 import { Heading, Label, Subheading } from "@/components/ui/typography";
 import { Container } from "@/components/layout/container";
 import { Section } from "@/components/layout/section";
@@ -184,6 +185,9 @@ export function SolutionsPage() {
               <p className="text-lg leading-8 text-slate-700">
                 BCONZ helps pharmaceutical, biotechnology, healthcare AI and research organizations identify research-ready healthcare data through governed, institution-led partnerships that support scientific discovery.
               </p>
+              <p className="text-base leading-7 text-slate-700">
+                Teams can start by reviewing available <Link href="/data" className="font-semibold text-slate-950 underline underline-offset-4">research data modalities</Link>, submitting a <Link href="/request-data" className="font-semibold text-slate-950 underline underline-offset-4">research data request</Link>, or contacting BCONZ to discuss a specific program.
+              </p>
               <div className="flex flex-col gap-4 sm:flex-row">
                 <Button variant="primary" size="large" as="a" href="/contact">
                   Discuss Your Research
@@ -233,10 +237,10 @@ export function SolutionsPage() {
                 <div className="flex h-12 w-12 items-center justify-center rounded-3xl bg-slate-50 text-slate-950">
                   <Icon name={audience.icon} className="h-6 w-6" />
                 </div>
-                <h2 className="mt-6 text-xl font-semibold text-slate-950">{audience.title}</h2>
+                <h3 className="mt-6 text-xl font-semibold text-slate-950">{audience.title}</h3>
                 <p className="mt-3 text-sm leading-6 text-slate-600">{audience.description}</p>
                 <Button variant="secondary" size="normal" as="a" href={audience.href} className="mt-6">
-                  Learn More
+                  Explore Solutions
                 </Button>
               </Card>
             ))}
@@ -322,7 +326,7 @@ export function SolutionsPage() {
             <Label>Research Areas</Label>
             <Heading>Research and development focus areas supported by BCONZ</Heading>
             <Subheading>
-              Elegant solutions for drug discovery, precision medicine, AI and evidence generation.
+              Practical pathways for drug discovery, precision medicine, healthcare AI research and real-world evidence generation.
             </Subheading>
           </div>
 
@@ -342,7 +346,7 @@ export function SolutionsPage() {
             <Label>How Engagement Works</Label>
             <Heading>Partnering through a premium research timeline</Heading>
             <Subheading>
-              Organized steps from research discussion through ongoing collaboration.
+              Organized steps from research discussion through ongoing collaboration, with data partners engaged where institution-led review is required.
             </Subheading>
           </div>
 
@@ -415,7 +419,7 @@ export function SolutionsPage() {
             </p>
             <div className="mt-8 grid gap-4 sm:grid-cols-2">
               <Button variant="primary" size="large" as="a" href="/data">
-                Request Research Data
+                Explore Research Data
               </Button>
               <Button variant="secondary" size="large" as="a" href="/data-partners">
                 Become a Data Partner

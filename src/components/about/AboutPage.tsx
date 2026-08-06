@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import Link from "next/link";
 import { Heading, Label, Subheading } from "@/components/ui/typography";
 import { Container } from "@/components/layout/container";
 import { Section } from "@/components/layout/section";
@@ -47,9 +48,12 @@ export function AboutPage() {
               <p className="text-lg leading-8 text-slate-700">
                 BCONZ brings together healthcare organizations, life sciences companies and researchers through responsible healthcare data partnerships that support scientific discovery and innovation.
               </p>
+              <p className="text-base leading-7 text-slate-700">
+                Our work connects <Link href="/data-partners" className="font-semibold text-slate-950 underline underline-offset-4">healthcare data partners</Link> with <Link href="/solutions" className="font-semibold text-slate-950 underline underline-offset-4">research and life sciences teams</Link> through purpose-specific collaboration.
+              </p>
               <div className="flex flex-col gap-4 sm:flex-row">
                 <Button variant="primary" size="large" as="a" href="/contact">
-                  Talk to Our Team
+                  Contact BCONZ
                 </Button>
                 <Button variant="secondary" size="large" as="a" href="/data-partners">
                   Become a Data Partner
@@ -90,7 +94,7 @@ export function AboutPage() {
             <Label>Our Vision</Label>
             <Heading>A Future Where Better Data Enables Better Research</Heading>
             <Subheading>
-              Better collaboration, better research, better patient outcomes and stronger healthcare ecosystems.
+              Better collaboration can make healthcare data more useful for scientific research while preserving institutional trust and responsible governance.
             </Subheading>
           </div>
         </Container>
@@ -194,10 +198,10 @@ export function AboutPage() {
             <p className="text-sm font-semibold uppercase tracking-[0.28em] text-teal-300">Ready to Start a Conversation?</p>
             <div className="mt-8 grid gap-4 sm:grid-cols-2">
               <Button variant="primary" size="large" as="a" href="/contact">
-                Contact Us
+                Contact BCONZ
               </Button>
               <Button variant="secondary" size="large" as="a" href="/data-partners">
-                Become a Partner
+                Become a Data Partner
               </Button>
             </div>
           </div>

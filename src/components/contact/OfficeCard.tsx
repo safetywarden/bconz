@@ -29,12 +29,12 @@ export function OfficeCard({ title, lines, phone, email, actionHref }: { title: 
       </div>
       <div className="mt-6 flex items-center justify-between gap-4">
         <div className="h-40 w-full rounded-md bg-slate-100/60 flex items-center justify-center text-sm text-slate-500">
-          Map placeholder — map integration reserved for future
+          Map integration reserved for future
         </div>
         {actionHref ? (
           <div className="ml-4">
             <Button as="a" href={actionHref} variant="secondary" size="normal">
-              Contact Office
+              Contact BCONZ
             </Button>
           </div>
         ) : null}

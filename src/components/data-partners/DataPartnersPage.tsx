@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import Link from "next/link";
 import { Heading, Label, Subheading } from "@/components/ui/typography";
 import { Container } from "@/components/layout/container";
 import { Section } from "@/components/layout/section";
@@ -178,12 +179,15 @@ export function DataPartnersPage() {
               <p className="text-lg leading-8 text-slate-700">
                 BCONZ collaborates with hospitals, laboratories and research institutions to support responsible healthcare data partnerships that accelerate scientific research while respecting institutional governance and patient privacy.
               </p>
+              <p className="text-base leading-7 text-slate-700">
+                Institutions can understand research readiness across <Link href="/data" className="font-semibold text-slate-950 underline underline-offset-4">clinical, genomic, imaging and real-world data</Link>, then explore how BCONZ supports <Link href="/solutions" className="font-semibold text-slate-950 underline underline-offset-4">life sciences and healthcare AI collaborations</Link>.
+              </p>
               <div className="flex flex-col gap-4 sm:flex-row">
                 <Button variant="primary" size="large" as="a" href="/contact">
                   Become a Data Partner
                 </Button>
                 <Button variant="secondary" size="large" as="a" href="/contact">
-                  Schedule a Discussion
+                  Contact BCONZ
                 </Button>
               </div>
             </div>
@@ -231,7 +235,7 @@ export function DataPartnersPage() {
                 <div className="flex h-12 w-12 items-center justify-center rounded-3xl bg-slate-50 text-slate-950">
                   <Icon name={partner.icon} className="h-6 w-6" />
                 </div>
-                <h2 className="mt-6 text-xl font-semibold text-slate-950">{partner.title}</h2>
+                <h3 className="mt-6 text-xl font-semibold text-slate-950">{partner.title}</h3>
                 <p className="mt-4 text-sm leading-6 text-slate-600">{partner.description}</p>
                 <div className="mt-5 space-y-2 text-sm leading-6 text-slate-600">
                   <p className="font-semibold text-slate-900">Collaboration opportunities</p>
@@ -388,7 +392,7 @@ export function DataPartnersPage() {
                 Become a Data Partner
               </Button>
               <Button variant="secondary" size="large" as="a" href="/contact">
-                Contact Our Partnership Team
+                Contact BCONZ
               </Button>
             </div>
           </div>

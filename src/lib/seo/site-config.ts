@@ -8,6 +8,18 @@ export const seoSiteConfig = {
   defaultOpenGraphImage: "/Images/brand_canvas/linkedin-header.png",
   locale: "en_US",
   language: "en",
+  socialLinks: [
+    {
+      title: "X",
+      label: "BCONZ on X",
+      href: "https://x.com/BconzC",
+    },
+    {
+      title: "LinkedIn",
+      label: "BCONZ on LinkedIn",
+      href: "https://www.linkedin.com/company/bconzinternational",
+    },
+  ],
   organization: {
     name: "BCONZ",
     legalName: "Bconz International (OPC) Pvt Ltd",
@@ -27,6 +39,9 @@ export const seoSiteConfig = {
         addressCountry: "SG",
       },
     ],
-    sameAs: [],
+    sameAs: [
+      "https://x.com/BconzC",
+      "https://www.linkedin.com/company/bconzinternational",
+    ],
   },
 } as const;

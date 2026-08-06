@@ -74,7 +74,7 @@ export function Header() {
             href="/contact"
             className="hidden rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-950 transition hover:border-slate-300 hover:bg-slate-50 md:inline-flex"
           >
-            Contact Us
+            Contact BCONZ
           </Link>
           <button
             type="button"

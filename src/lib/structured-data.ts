@@ -36,6 +36,7 @@ export function organizationJsonLd() {
       "@type": "PostalAddress",
       ...address,
     })),
+    sameAs: seoSiteConfig.organization.sameAs,
   };
 }
 

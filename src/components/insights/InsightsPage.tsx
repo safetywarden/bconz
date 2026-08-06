@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Container } from "@/components/layout/container";
@@ -51,15 +52,18 @@ export function InsightsPage() {
               Insights for healthcare data partnerships and enterprise research.
             </h1>
             <p className="mx-auto max-w-2xl text-base leading-8 text-slate-300">
-              Discover research perspectives, governance guidance and innovation stories that support trusted healthcare data collaboration.
+              Explore planned perspectives on healthcare data partnerships, governance, genomics, real-world evidence and healthcare AI research.
+            </p>
+            <p className="mx-auto max-w-2xl text-sm leading-7 text-slate-300">
+              For active programs, review <Link href="/data" className="font-semibold text-white underline underline-offset-4">research-ready healthcare data</Link>, <Link href="/solutions" className="font-semibold text-white underline underline-offset-4">healthcare data solutions</Link> or <Link href="/data-partners" className="font-semibold text-white underline underline-offset-4">data partner pathways</Link>.
             </p>
           </div>
           <div className="mx-auto flex max-w-3xl flex-col gap-4 sm:flex-row sm:justify-center">
             <Button as="a" href="#featured" variant="primary" size="large">
-              Explore featured insight
+              Explore Planned Insights
             </Button>
-            <Button as="a" href="#latest" variant="secondary" size="large">
-              Browse latest insights
+            <Button as="a" href="/contact" variant="secondary" size="large">
+              Discuss Your Research
             </Button>
           </div>
         </Container>
@@ -68,7 +72,7 @@ export function InsightsPage() {
       <section id="featured">
         <Container className="space-y-10">
           <div className="space-y-4 text-center">
-            <Subheading>Featured insight</Subheading>
+            <Subheading>Featured planning topic</Subheading>
             <Heading>Research-ready insights for life sciences and healthcare organizations.</Heading>
           </div>
           <FeaturedArticle article={featuredInsight} />
@@ -87,7 +91,7 @@ export function InsightsPage() {
                   <input
                     value={search}
                     onChange={(event) => setSearch(event.target.value)}
-                    placeholder="Search by topic, author, or keyword"
+                    placeholder="Search by topic or keyword"
                     className="w-full rounded-3xl border border-slate-300 bg-white px-5 py-4 text-sm text-slate-950 outline-none transition focus:border-slate-500 focus:ring-4 focus:ring-slate-200"
                   />
                 </div>
@@ -149,8 +153,8 @@ export function InsightsPage() {
       <section id="latest">
         <Container className="space-y-10">
           <div className="space-y-4 text-center">
-            <Subheading>Latest insights</Subheading>
-            <Heading>New research stories, governance guidance and innovation analysis.</Heading>
+            <Subheading>Planned insights</Subheading>
+            <Heading>Draft topics for research stories, governance guidance and innovation analysis.</Heading>
           </div>
           <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
             {filteredArticles.map((article) => (
@@ -163,8 +167,8 @@ export function InsightsPage() {
       <section>
         <Container className="space-y-10">
           <div className="space-y-4 text-center">
-            <Subheading>Events & conversations</Subheading>
-            <Heading>Live sessions for healthcare leaders and research teams.</Heading>
+            <Subheading>Planned conversations</Subheading>
+            <Heading>Discussion topics for healthcare leaders and research teams.</Heading>
           </div>
           <div className="grid gap-6 lg:grid-cols-2">
             {upcomingEvents.map((event) => (
@@ -192,13 +196,13 @@ export function InsightsPage() {
             </div>
             <div className="space-y-4 text-sm leading-7 text-slate-600 lg:col-span-2">
               <p>
-                Our insights are designed for research leaders, healthcare organizations and life sciences teams who need clarity on data partnerships, real world evidence, and secure collaboration.
+                Our planned insights are designed for research leaders, healthcare organizations and life sciences teams who need clarity on healthcare data partnerships, real-world evidence and secure collaboration.
               </p>
               <p>
                 If you would like to discuss a specific program, dataset or governance framework, we can share how BCONZ supports every stage from planning through study execution.
               </p>
               <Button as="a" href="/contact" variant="primary" size="large">
-                Contact our team
+                Contact BCONZ
               </Button>
             </div>
           </div>

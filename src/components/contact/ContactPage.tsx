@@ -25,7 +25,7 @@ const contactOptions: { title: string; description: string; actionLabel?: string
   {
     title: "General & Strategic Enquiries",
     description: "Strategic partnerships, events, media, technology or corporate matters.",
-    actionLabel: "Start an Enquiry",
+    actionLabel: "Contact BCONZ",
     actionHref: "/contact#contact-form",
     icon: "trust",
   },
@@ -46,7 +46,7 @@ export function ContactPage() {
             </p>
             <div className="mt-6">
               <Button as="a" href="#contact-form" variant="primary" size="large">
-                Start Your Enquiry
+                Contact BCONZ
               </Button>
             </div>
           </div>
@@ -75,7 +75,7 @@ export function ContactPage() {
           <div className="mx-auto max-w-5xl space-y-6 text-center">
             <Label>Send Us a Message</Label>
             <Heading>Share a few details and we&apos;ll review your enquiry</Heading>
-            <Subheading>Provide basic details below and the appropriate BCONZ team member will review your enquiry.</Subheading>
+            <Subheading>Provide basic details below. Please do not include patient-identifiable information in this general enquiry form.</Subheading>
           </div>
           <div id="contact-form" className="mt-8 w-full">
             <ContactForm />
@@ -88,7 +88,7 @@ export function ContactPage() {
         <Container>
           <div className="mx-auto max-w-4xl space-y-6 text-center">
             <Label>Our Offices</Label>
-            <Heading>Global Presence</Heading>
+            <Heading>BCONZ office locations</Heading>
             <Subheading>BCONZ operates across regions — contact the office nearest you.</Subheading>
           </div>
           <div className="mt-8 grid gap-6 md:grid-cols-2">

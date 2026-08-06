@@ -36,4 +36,6 @@ export const logoConfig: LogoConfig = {
   markAltText: "BCONZ mark",
 };
 
-export const socialLinks: Array<{ title: string; href: string }> = [];
+export const socialLinks: Array<{ title: string; label: string; href: string }> = [
+  ...seoSiteConfig.socialLinks,
+];

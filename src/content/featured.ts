@@ -4,10 +4,9 @@ export type FeaturedInsight = {
   category: string;
   readingTime: string;
   summary: string;
-  author: string;
-  date: string;
   image: string;
   imageAlt: string;
+  status: "unpublished";
 };
 
 export const featuredInsight: FeaturedInsight = {
@@ -17,8 +16,7 @@ export const featuredInsight: FeaturedInsight = {
   readingTime: "8 min read",
   summary:
     "How BCONZ works with healthcare organizations and life sciences teams to create research-ready, governance-aware data collaborations.",
-  author: "BCONZ Insights Team",
-  date: "June 12, 2026",
   image: "/globe.svg",
   imageAlt: "Healthcare data insights illustration",
+  status: "unpublished",
 };
