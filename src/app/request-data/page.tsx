@@ -6,7 +6,7 @@ import { Section } from "@/components/layout/section";
 import { Heading, Label, Subheading } from "@/components/ui/typography";
 import { RequestDataForm } from "@/components/contact/RequestDataForm";
 import { getPageSeo } from "@/lib/seo";
-import { breadcrumbJsonLd, webPageJsonLd } from "@/lib/structured-data";
+import { breadcrumbJsonLd, webPageJsonLd } from "@/lib/seo/json-ld";
 
 const seo = getPageSeo("/request-data");
 

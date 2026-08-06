@@ -1,16 +1,17 @@
-import { metadataBase, siteDescription, siteName } from "@/lib/site";
+import { metadataBase } from "@/lib/site";
 import { absoluteUrl, getPageSeo, type PublicRoute } from "@/lib/seo";
+import { seoSiteConfig } from "@/lib/seo/site-config";
 
 export function organizationJsonLd() {
   return {
     "@context": "https://schema.org",
     "@type": "Organization",
     "@id": absoluteUrl("/#organization"),
-    name: "Bconz International (OPC) Pvt Ltd",
-    alternateName: siteName,
+    name: seoSiteConfig.organization.legalName,
+    alternateName: seoSiteConfig.organization.name,
     url: metadataBase.toString(),
-    logo: absoluteUrl("/Images/brand/bconz-logo-horizontal.png"),
-    description: siteDescription,
+    logo: absoluteUrl(seoSiteConfig.organization.logo),
+    description: seoSiteConfig.defaultDescription,
     industry: "Healthcare data partnerships",
     areaServed: ["India", "Singapore", "Global"],
     knowsAbout: [
@@ -25,28 +26,16 @@ export function organizationJsonLd() {
     contactPoint: [
       {
         "@type": "ContactPoint",
-        telephone: "+91 7624841555",
+        telephone: seoSiteConfig.organization.telephone,
         contactType: "business enquiries",
         areaServed: "IN",
         availableLanguage: ["en"],
       },
     ],
-    address: [
-      {
-        "@type": "PostalAddress",
-        streetAddress: "Manipal County Road",
-        addressLocality: "Bangalore",
-        postalCode: "560068",
-        addressCountry: "IN",
-      },
-      {
-        "@type": "PostalAddress",
-        streetAddress: "60 Paya Lebar Road #06-53 Paya Lebar Square",
-        addressLocality: "Singapore",
-        postalCode: "409051",
-        addressCountry: "SG",
-      },
-    ],
+    address: seoSiteConfig.organization.addresses.map((address) => ({
+      "@type": "PostalAddress",
+      ...address,
+    })),
   };
 }
 
@@ -55,13 +44,13 @@ export function websiteJsonLd() {
     "@context": "https://schema.org",
     "@type": "WebSite",
     "@id": absoluteUrl("/#website"),
-    name: siteName,
+    name: seoSiteConfig.siteName,
     url: metadataBase.toString(),
-    description: siteDescription,
+    description: seoSiteConfig.defaultDescription,
     publisher: {
       "@id": absoluteUrl("/#organization"),
     },
-    inLanguage: "en",
+    inLanguage: seoSiteConfig.language,
   };
 }
 
@@ -84,7 +73,7 @@ export function webPageJsonLd(path: PublicRoute, type: "WebPage" | "AboutPage" |
     publisher: {
       "@id": absoluteUrl("/#organization"),
     },
-    inLanguage: "en",
+    inLanguage: seoSiteConfig.language,
   };
 }
 

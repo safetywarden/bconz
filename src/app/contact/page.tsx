@@ -2,7 +2,7 @@ import { JsonLd } from "@/components/seo/JsonLd";
 import { createMetadata } from "@/lib/metadata";
 import { ContactPage } from "@/components/contact/ContactPage";
 import { getPageSeo } from "@/lib/seo";
-import { breadcrumbJsonLd, webPageJsonLd } from "@/lib/structured-data";
+import { breadcrumbJsonLd, webPageJsonLd } from "@/lib/seo/json-ld";
 
 const seo = getPageSeo("/contact");
 

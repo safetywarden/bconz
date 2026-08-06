@@ -2,7 +2,7 @@ import { JsonLd } from "@/components/seo/JsonLd";
 import { PageShell } from "@/components/layout/page-shell";
 import { createMetadata } from "@/lib/metadata";
 import { getPageSeo } from "@/lib/seo";
-import { breadcrumbJsonLd, webPageJsonLd } from "@/lib/structured-data";
+import { breadcrumbJsonLd, webPageJsonLd } from "@/lib/seo/json-ld";
 
 const seo = getPageSeo("/privacy");
 

@@ -1,11 +1,11 @@
 import type { LogoConfig, NavItem, FooterLink } from "@/types/site";
+import { seoSiteConfig } from "@/lib/seo/site-config";
 
-export const siteName = "BCONZ";
+export const siteName = seoSiteConfig.siteName;
 export const siteTagline = "Healthcare Data. Life Sciences Impact.";
-export const siteDescription =
-  "BCONZ connects healthcare organizations with life sciences companies through trust-driven research-ready healthcare datasets for enterprise analytics and scientific research.";
+export const siteDescription = seoSiteConfig.defaultDescription;
 
-export const metadataBase = new URL("https://bconz.com");
+export const metadataBase = new URL(seoSiteConfig.siteUrl);
 
 export const navigation: NavItem[] = [
   { title: "Home", href: "/" },

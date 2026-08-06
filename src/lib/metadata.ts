@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-import { metadataBase, siteDescription, siteName } from "@/lib/site";
+import { metadataBase } from "@/lib/site";
 import { absoluteUrl, defaultOgImage, type PublicRoute } from "@/lib/seo";
+import { seoSiteConfig } from "@/lib/seo/site-config";
 
 type CreateMetadataOptions = Partial<Metadata> & {
   path?: PublicRoute;
@@ -10,20 +11,30 @@ type CreateMetadataOptions = Partial<Metadata> & {
 export function createMetadata(overrides: CreateMetadataOptions = {}): Metadata {
   const path = overrides.path ?? "/";
   const canonicalUrl = absoluteUrl(path);
-  const title = overrides.title ?? siteName;
-  const description = overrides.description ?? siteDescription;
+  const titleText = typeof overrides.title === "string" ? overrides.title : seoSiteConfig.defaultTitle;
+  const description =
+    typeof overrides.description === "string" ? overrides.description : seoSiteConfig.defaultDescription;
   const ogImage = absoluteUrl(defaultOgImage);
 
   return {
     metadataBase,
-    title,
+    title: overrides.title
+      ? overrides.title
+      : {
+          default: seoSiteConfig.defaultTitle,
+          template: seoSiteConfig.titleTemplate,
+        },
     description,
     keywords: overrides.keywords,
     manifest: "/manifest.webmanifest",
-    applicationName: siteName,
-    authors: [{ name: siteName, url: metadataBase.toString() }],
-    creator: siteName,
-    publisher: siteName,
+    applicationName: seoSiteConfig.siteName,
+    creator: seoSiteConfig.siteName,
+    publisher: seoSiteConfig.siteName,
+    formatDetection: {
+      address: false,
+      email: false,
+      telephone: false,
+    },
     alternates: {
       canonical: canonicalUrl,
       languages: {
@@ -42,12 +53,12 @@ export function createMetadata(overrides: CreateMetadataOptions = {}): Metadata 
       },
     },
     openGraph: {
-      title,
+      title: titleText,
       description,
       url: canonicalUrl,
-      siteName,
+      siteName: seoSiteConfig.siteName,
       type: "website",
-      locale: "en_US",
+      locale: seoSiteConfig.locale,
       images: [
         {
           url: ogImage,
@@ -59,7 +70,7 @@ export function createMetadata(overrides: CreateMetadataOptions = {}): Metadata 
     },
     twitter: {
       card: "summary_large_image",
-      title,
+      title: titleText,
       description,
       images: [ogImage],
     },

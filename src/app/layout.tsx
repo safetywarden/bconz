@@ -8,7 +8,7 @@ import { AnnouncementBar } from "@/components/layout/announcement-bar";
 import { BackToTopButton } from "@/components/layout/back-to-top";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { createMetadata } from "@/lib/metadata";
-import { organizationJsonLd, websiteJsonLd } from "@/lib/structured-data";
+import { organizationJsonLd, websiteJsonLd } from "@/lib/seo/json-ld";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

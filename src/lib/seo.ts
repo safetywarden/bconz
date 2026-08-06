@@ -1,4 +1,5 @@
 import { metadataBase, siteDescription, siteName } from "@/lib/site";
+import { seoSiteConfig } from "@/lib/seo/site-config";
 
 export type PublicRoute =
   | "/"
@@ -19,14 +20,14 @@ export type PageSeo = {
   keywords: string[];
 };
 
-export const defaultOgImage = "/Images/brand_canvas/linkedin-header.png";
+export const defaultOgImage = seoSiteConfig.defaultOpenGraphImage;
 
 export const pageSeo: Record<PublicRoute, PageSeo> = {
   "/": {
     path: "/",
-    title: "Healthcare Data Partnerships for AI-Ready Clinical Research | BCONZ",
+    title: "Healthcare Data Partnerships for AI and Life Sciences",
     description:
-      "BCONZ helps healthcare and life sciences organizations collaborate through trusted clinical, molecular, imaging and real-world data partnerships for regulated research.",
+      "BCONZ enables trusted healthcare data partnerships for clinical, genomic, imaging and longitudinal research datasets for life sciences and AI.",
     keywords: [
       "healthcare data partnerships",
       "clinical research data",
@@ -37,9 +38,9 @@ export const pageSeo: Record<PublicRoute, PageSeo> = {
   },
   "/about": {
     path: "/about",
-    title: "About BCONZ | Healthcare Data Partnership Expertise",
+    title: "About Healthcare Data Partnerships",
     description:
-      "Learn how BCONZ supports responsible healthcare data collaboration for hospitals, research institutes, life sciences teams and healthcare AI organizations.",
+      "Learn how BCONZ supports responsible healthcare data collaboration for hospitals, research institutes, life sciences and healthcare AI teams.",
     keywords: [
       "healthcare data expertise",
       "life sciences data partnerships",
@@ -49,9 +50,9 @@ export const pageSeo: Record<PublicRoute, PageSeo> = {
   },
   "/data": {
     path: "/data",
-    title: "Clinical Research Data and AI-Ready Healthcare Datasets | BCONZ",
+    title: "Research-Ready Clinical, Genomic and Imaging Data",
     description:
-      "Explore research-ready clinical, genomics, imaging, biospecimen and real-world healthcare data modalities for enterprise life sciences and AI research.",
+      "Explore research-ready clinical, genomic, imaging, biospecimen and real-world healthcare data for enterprise life sciences and AI research.",
     keywords: [
       "clinical data licensing",
       "longitudinal clinical data",
@@ -62,9 +63,9 @@ export const pageSeo: Record<PublicRoute, PageSeo> = {
   },
   "/request-data": {
     path: "/request-data",
-    title: "Request Clinical Research Data for Life Sciences Studies | BCONZ",
+    title: "Request Healthcare Data for Research and AI",
     description:
-      "Request healthcare research data for clinical research, real-world evidence, precision medicine, AI development and enterprise life sciences programs.",
+      "Request healthcare research data for clinical studies, real-world evidence, precision medicine, AI development and life sciences programs.",
     keywords: [
       "request clinical research data",
       "medical research data",
@@ -74,9 +75,9 @@ export const pageSeo: Record<PublicRoute, PageSeo> = {
   },
   "/data-partners": {
     path: "/data-partners",
-    title: "Hospital and Genomics Data Partnerships for Research | BCONZ",
+    title: "Healthcare Data Partnerships for Hospitals and Labs",
     description:
-      "Explore responsible data partnership models for hospitals, health systems, laboratories, biobanks, genomics companies and academic research institutes.",
+      "Explore responsible data partnership models for hospitals, health systems, labs, biobanks, genomics companies and research institutes.",
     keywords: [
       "hospital data partnerships",
       "genomics data partnerships",
@@ -86,7 +87,7 @@ export const pageSeo: Record<PublicRoute, PageSeo> = {
   },
   "/contact": {
     path: "/contact",
-    title: "Contact BCONZ for Healthcare Data Collaboration",
+    title: "Contact Healthcare Data Collaboration Team",
     description:
       "Contact BCONZ to discuss healthcare data partnerships, clinical research data, AI-ready datasets, responsible data governance and enterprise collaboration.",
     keywords: [
@@ -98,7 +99,7 @@ export const pageSeo: Record<PublicRoute, PageSeo> = {
   },
   "/privacy": {
     path: "/privacy",
-    title: "Privacy Commitments for Healthcare Data Governance | BCONZ",
+    title: "Privacy Policy",
     description:
       "Review BCONZ privacy commitments for healthcare data governance, research collaboration, enterprise partnerships and responsible data handling.",
     keywords: [
@@ -110,7 +111,7 @@ export const pageSeo: Record<PublicRoute, PageSeo> = {
   },
   "/terms": {
     path: "/terms",
-    title: "Terms of Use for BCONZ Enterprise Website",
+    title: "Terms of Use",
     description:
       "Review website terms for BCONZ corporate information, enterprise healthcare data partnerships, research collaboration and public website access.",
     keywords: [
@@ -121,7 +122,7 @@ export const pageSeo: Record<PublicRoute, PageSeo> = {
   },
   "/solutions": {
     path: "/solutions",
-    title: "Healthcare Data Solutions for Life Sciences and AI Research | BCONZ",
+    title: "Healthcare Data Solutions for Life Sciences and AI",
     description:
       "See how BCONZ supports pharmaceutical, biotechnology, CRO, healthcare AI and research organizations with trusted healthcare data collaboration.",
     keywords: [
@@ -133,7 +134,7 @@ export const pageSeo: Record<PublicRoute, PageSeo> = {
   },
   "/insights": {
     path: "/insights",
-    title: "Healthcare Data Insights for Research and AI Leaders | BCONZ",
+    title: "Healthcare Data and AI Insights",
     description:
       "Read BCONZ insights on healthcare data strategy, real-world evidence, AI-ready clinical data, governance and enterprise research collaboration.",
     keywords: [
