@@ -135,9 +135,9 @@ export function RequestDataForm() {
   return (
     <Card className="p-8">
       <div ref={statusRef} tabIndex={-1} className="outline-none">
-        <FormStatus status={formStatus} errorMessage={errors.form} />
+        <FormStatus id="request-data-form-status" status={formStatus} errorMessage={errors.form} />
       </div>
-      <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+      <form onSubmit={handleSubmit} className="space-y-6" noValidate aria-busy={submitting} aria-describedby="request-data-form-status">
         <div className="grid gap-6 lg:grid-cols-2">
           <label className="block">
             <span className="text-sm font-semibold text-slate-900">Organization</span>
@@ -146,6 +146,8 @@ export function RequestDataForm() {
               onChange={(e) => update("organizationName", e.target.value)}
               name="organizationName"
               type="text"
+              required
+              autoComplete="organization"
               aria-invalid={!!errors.organizationName}
               aria-describedby={errors.organizationName ? "err-organizationName" : undefined}
               className="mt-2 w-full rounded-3xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-200"
@@ -159,6 +161,8 @@ export function RequestDataForm() {
               onChange={(e) => update("contactName", e.target.value)}
               name="contactName"
               type="text"
+              required
+              autoComplete="name"
               aria-invalid={!!errors.contactName}
               aria-describedby={errors.contactName ? "err-contactName" : undefined}
               className="mt-2 w-full rounded-3xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-200"
@@ -172,6 +176,7 @@ export function RequestDataForm() {
               onChange={(e) => update("jobTitle", e.target.value)}
               name="jobTitle"
               type="text"
+              autoComplete="organization-title"
               className="mt-2 w-full rounded-3xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-200"
             />
           </label>
@@ -182,6 +187,8 @@ export function RequestDataForm() {
               onChange={(e) => update("businessEmail", e.target.value)}
               name="businessEmail"
               type="email"
+              required
+              autoComplete="email"
               aria-invalid={!!errors.businessEmail}
               aria-describedby={errors.businessEmail ? "err-businessEmail" : undefined}
               className="mt-2 w-full rounded-3xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-200"
@@ -195,6 +202,7 @@ export function RequestDataForm() {
               onChange={(e) => update("phone", e.target.value)}
               name="phone"
               type="tel"
+              autoComplete="tel"
               className="mt-2 w-full rounded-3xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-200"
             />
           </label>
@@ -205,6 +213,8 @@ export function RequestDataForm() {
               onChange={(e) => update("country", e.target.value)}
               name="country"
               type="text"
+              required
+              autoComplete="country-name"
               aria-invalid={!!errors.country}
               aria-describedby={errors.country ? "err-country" : undefined}
               className="mt-2 w-full rounded-3xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-200"
@@ -217,6 +227,7 @@ export function RequestDataForm() {
               value={form.diseaseArea}
               onChange={(e) => update("diseaseArea", e.target.value)}
               name="diseaseArea"
+              required
               aria-invalid={!!errors.diseaseArea}
               aria-describedby={errors.diseaseArea ? "err-diseaseArea" : undefined}
               className="mt-2 w-full rounded-3xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-200"
@@ -239,6 +250,7 @@ export function RequestDataForm() {
             onChange={(e) => update("researchObjective", e.target.value)}
             name="researchObjective"
             rows={4}
+            required
             aria-invalid={!!errors.researchObjective}
             aria-describedby={errors.researchObjective ? "err-researchObjective" : undefined}
             className="mt-2 w-full rounded-3xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-200"
@@ -261,7 +273,9 @@ export function RequestDataForm() {
                       : form.dataModalities.filter((item) => item !== modality);
                     update("dataModalities", next);
                   }}
-                  className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-400"
+                  name="dataModalities"
+                  value={modality}
+                  className="h-5 w-5 rounded border-slate-300 text-teal-600 focus:ring-teal-400"
                 />
                 <span className="text-sm text-slate-700">{modality}</span>
               </label>
@@ -304,7 +318,7 @@ export function RequestDataForm() {
           value={form.botcheck}
           onChange={(e) => update("botcheck", e.target.value)}
           autoComplete="off"
-          className="absolute left-[-9999px] h-px w-px overflow-hidden"
+          className="sr-only"
           aria-hidden="true"
           tabIndex={-1}
         />
@@ -315,9 +329,10 @@ export function RequestDataForm() {
             checked={form.privacyConsent}
             onChange={(e) => update("privacyConsent", e.target.checked)}
             name="privacyConsent"
+            required
             aria-invalid={!!errors.privacyConsent}
             aria-describedby={errors.privacyConsent ? "err-privacyConsent" : undefined}
-            className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-400"
+            className="h-5 w-5 rounded border-slate-300 text-teal-600 focus:ring-teal-400"
           />
           <span>
             I agree that BCONZ may use the information submitted to review and respond to this enquiry in accordance with the{" "}

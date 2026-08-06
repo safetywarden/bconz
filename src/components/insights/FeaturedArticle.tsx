@@ -7,7 +7,13 @@ export function FeaturedArticle({ article }: { article: FeaturedInsight }) {
   return (
     <Card className="overflow-hidden p-0 lg:flex lg:items-stretch">
       <div className="relative h-72 w-full lg:h-auto lg:w-1/2">
-        <Image src={article.image} alt={article.imageAlt} fill className="object-cover" />
+        <Image
+          src={article.image}
+          alt={article.imageAlt}
+          fill
+          sizes="(max-width: 1024px) 100vw, 50vw"
+          className="object-cover"
+        />
       </div>
       <div className="flex flex-col gap-4 p-8 lg:w-1/2">
         <div className="flex flex-wrap items-center gap-3 text-sm text-slate-500">

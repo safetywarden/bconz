@@ -7,7 +7,13 @@ export function ArticleCard({ article }: { article: InsightArticle }) {
   return (
     <Card className="overflow-hidden p-0">
       <div className="relative h-52 w-full">
-        <Image src={article.image} alt={article.imageAlt} fill className="object-cover" />
+        <Image
+          src={article.image}
+          alt={article.imageAlt}
+          fill
+          sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
+          className="object-cover"
+        />
       </div>
       <div className="space-y-4 p-6">
         <div className="flex flex-wrap items-center gap-3 text-sm text-slate-500">

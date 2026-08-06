@@ -16,12 +16,12 @@ export function FormStatus({
   errorMessage,
 }: FormStatusProps) {
   if (status === "idle") {
-    return null;
+    return <div id={id} className="min-h-0" aria-live="polite" />;
   }
 
   if (status === "submitting") {
     return (
-      <p id={id} role="status" aria-live="polite" className="text-sm text-slate-600">
+      <p id={id} role="status" aria-live="polite" className="min-h-6 text-sm text-slate-600">
         Submitting...
       </p>
     );
@@ -29,7 +29,7 @@ export function FormStatus({
 
   if (status === "success") {
     return (
-      <div id={id} role="status" aria-live="polite" className="space-y-2">
+      <div id={id} role="status" aria-live="polite" className="min-h-14 space-y-2">
         {successTitle ? <h3 className="text-xl font-semibold text-slate-950">{successTitle}</h3> : null}
         {successMessage ? <p className="text-sm text-slate-700">{successMessage}</p> : null}
       </div>
@@ -41,7 +41,7 @@ export function FormStatus({
       id={id}
       role="alert"
       aria-live="assertive"
-      className="mb-4 rounded-md bg-rose-50 p-3 text-sm text-rose-700"
+      className="mb-4 min-h-12 rounded-md bg-rose-50 p-3 text-sm text-rose-700"
     >
       {errorMessage ?? "Unable to submit your enquiry. Please try again."}
     </div>

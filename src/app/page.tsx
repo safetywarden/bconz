@@ -13,7 +13,9 @@ export default function Home() {
     <>
       <JsonLd id="ld-home-page" data={webPageJsonLd("/")} />
       <JsonLd id="ld-home-breadcrumb" data={breadcrumbJsonLd([{ name: "Home", path: "/" }])} />
-      <Hero />
+      <main>
+        <Hero />
+      </main>
     </>
   );
 }

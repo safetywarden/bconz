@@ -162,12 +162,12 @@ export function ContactForm() {
   return (
     <Card className="p-8">
       <div ref={statusRef} tabIndex={-1} className="outline-none">
-        <FormStatus status={formStatus} errorMessage={errors.form} />
+        <FormStatus id="contact-form-status" status={formStatus} errorMessage={errors.form} />
       </div>
       <div className="mb-4 text-sm text-slate-700">
         If you are requesting Research Data or want to become a Data Partner, please use the dedicated options above to access the correct workflow.
       </div>
-      <form onSubmit={onSubmit} className="space-y-6" noValidate>
+      <form onSubmit={onSubmit} className="space-y-6" noValidate aria-busy={loading} aria-describedby="contact-form-status">
         <div className="grid gap-6 lg:grid-cols-2">
           <label className="block">
             <span className="text-sm font-semibold text-slate-900">Organization Name</span>
@@ -176,6 +176,8 @@ export function ContactForm() {
               onChange={(e) => update("organizationName", e.target.value)}
               name="organizationName"
               type="text"
+              required
+              autoComplete="organization"
               aria-invalid={!!errors.organizationName}
               aria-describedby={errors.organizationName ? "err-organizationName" : undefined}
               className="mt-2 w-full rounded-3xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-200"
@@ -190,6 +192,8 @@ export function ContactForm() {
               onChange={(e) => update("contactName", e.target.value)}
               name="contactName"
               type="text"
+              required
+              autoComplete="name"
               aria-invalid={!!errors.contactName}
               aria-describedby={errors.contactName ? "err-contactName" : undefined}
               className="mt-2 w-full rounded-3xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-200"
@@ -204,6 +208,7 @@ export function ContactForm() {
               onChange={(e) => update("jobTitle", e.target.value)}
               name="jobTitle"
               type="text"
+              autoComplete="organization-title"
               className="mt-2 w-full rounded-3xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-200"
             />
           </label>
@@ -215,6 +220,8 @@ export function ContactForm() {
               onChange={(e) => update("businessEmail", e.target.value)}
               name="businessEmail"
               type="email"
+              required
+              autoComplete="email"
               aria-invalid={!!errors.businessEmail}
               aria-describedby={errors.businessEmail ? "err-businessEmail" : undefined}
               className="mt-2 w-full rounded-3xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-200"
@@ -229,6 +236,7 @@ export function ContactForm() {
               onChange={(e) => update("phone", e.target.value)}
               name="phone"
               type="tel"
+              autoComplete="tel"
               className="mt-2 w-full rounded-3xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-200"
             />
           </label>
@@ -240,6 +248,7 @@ export function ContactForm() {
               onChange={(e) => update("country", e.target.value)}
               name="country"
               type="text"
+              autoComplete="country-name"
               className="mt-2 w-full rounded-3xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-200"
             />
           </label>
@@ -250,6 +259,9 @@ export function ContactForm() {
               value={form.organizationType}
               onChange={(e) => update("organizationType", e.target.value)}
               name="organizationType"
+              required
+              aria-invalid={!!errors.organizationType}
+              aria-describedby={errors.organizationType ? "err-organizationType" : undefined}
               className="mt-2 w-full rounded-3xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-200"
             >
               <option value="">Select</option>
@@ -259,6 +271,7 @@ export function ContactForm() {
                 </option>
               ))}
             </select>
+            {errors.organizationType ? <p id="err-organizationType" className="mt-2 text-sm text-rose-600">{errors.organizationType}</p> : null}
           </label>
 
           <label className="block">
@@ -267,6 +280,9 @@ export function ContactForm() {
               value={form.areaOfInterest}
               onChange={(e) => update("areaOfInterest", e.target.value)}
               name="areaOfInterest"
+              required
+              aria-invalid={!!errors.areaOfInterest}
+              aria-describedby={errors.areaOfInterest ? "err-areaOfInterest" : undefined}
               className="mt-2 w-full rounded-3xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-200"
             >
               <option value="">Select</option>
@@ -276,6 +292,7 @@ export function ContactForm() {
                 </option>
               ))}
             </select>
+            {errors.areaOfInterest ? <p id="err-areaOfInterest" className="mt-2 text-sm text-rose-600">{errors.areaOfInterest}</p> : null}
           </label>
         </div>
 
@@ -286,6 +303,7 @@ export function ContactForm() {
             onChange={(e) => update("message", e.target.value)}
             name="message"
             rows={5}
+            required
             aria-invalid={!!errors.message}
             aria-describedby={errors.message ? "err-message" : undefined}
             className="mt-2 w-full rounded-3xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-200"
@@ -337,7 +355,7 @@ export function ContactForm() {
           value={form.botcheck}
           onChange={(e) => update("botcheck", e.target.value)}
           autoComplete="off"
-          className="absolute left-[-9999px] h-px w-px overflow-hidden"
+          className="sr-only"
           aria-hidden="true"
           tabIndex={-1}
         />
@@ -348,9 +366,10 @@ export function ContactForm() {
             checked={form.privacyConsent === true}
             onChange={(e) => update("privacyConsent", e.target.checked)}
             name="privacyConsent"
+            required
             aria-invalid={!!errors.privacyConsent}
             aria-describedby={errors.privacyConsent ? "err-privacyConsent" : undefined}
-            className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-400"
+            className="h-5 w-5 rounded border-slate-300 text-teal-600 focus:ring-teal-400"
           />
           <span>
             I agree that BCONZ may use the information submitted to review and respond to this enquiry in accordance with the{" "}

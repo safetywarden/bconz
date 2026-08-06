@@ -94,5 +94,5 @@ const iconMap: Record<IconName, (props: SVGProps<SVGSVGElement>) => ReactElement
 
 export function Icon({ name, className = "" }: { name: IconName; className?: string }) {
   const Svg = iconMap[name];
-  return <Svg className={`h-6 w-6 ${className}`} aria-hidden="true" />;
+  return <Svg className={`h-6 w-6 ${className}`} aria-hidden="true" focusable="false" />;
 }

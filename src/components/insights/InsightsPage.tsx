@@ -1,6 +1,3 @@
-"use client";
-
-import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -9,8 +6,8 @@ import { Heading, Subheading } from "@/components/ui/typography";
 import { CategoryCard } from "@/components/insights/CategoryCard";
 import { EventCard } from "@/components/insights/EventCard";
 import { FeaturedArticle } from "@/components/insights/FeaturedArticle";
+import { InsightsFilter } from "@/components/insights/InsightsFilter";
 import { NewsletterSignup } from "@/components/insights/NewsletterSignup";
-import { ArticleCard } from "@/components/insights/ArticleCard";
 import { ResourceCard } from "@/components/insights/ResourceCard";
 import { articles } from "@/content/articles";
 import { featuredInsight } from "@/content/featured";
@@ -18,28 +15,7 @@ import { insightCategories } from "@/content/categories";
 import { resourceCards } from "@/content/resources";
 import { upcomingEvents } from "@/content/events";
 
-const initialTags = [
-  "Governance",
-  "AI",
-  "Clinical",
-  "Research",
-  "Partnerships",
-  "Data",
-];
-
 export function InsightsPage() {
-  const [search, setSearch] = useState("");
- const [selectedTag, setSelectedTag] = useState<string | null>(null);
-
-  const filteredArticles = useMemo(() => {
-    return articles.filter((article) => {
-      const searchText = `${article.title} ${article.summary} ${article.category} ${article.tags.join(" ")}`.toLowerCase();
-      const matchesSearch = searchText.includes(search.toLowerCase());
-      const matchesTag = selectedTag ? article.tags.includes(selectedTag) : true;
-      return matchesSearch && matchesTag;
-    });
-  }, [search, selectedTag]);
-
   return (
     <main className="space-y-24 py-16">
       <section className="bg-slate-950 text-white">
@@ -83,35 +59,14 @@ export function InsightsPage() {
         <Container className="space-y-10">
           <div className="grid gap-8 xl:grid-cols-[1.2fr_0.8fr]">
             <div className="space-y-4">
-              <div className="rounded-3xl border border-slate-200 bg-slate-50 p-8">
+              <Card className="border border-slate-200 bg-slate-50 p-8 shadow-none">
                 <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-500">
-                  Search insights
+                  Topic areas
                 </p>
-                <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center">
-                  <input
-                    value={search}
-                    onChange={(event) => setSearch(event.target.value)}
-                    placeholder="Search by topic or keyword"
-                    className="w-full rounded-3xl border border-slate-300 bg-white px-5 py-4 text-sm text-slate-950 outline-none transition focus:border-slate-500 focus:ring-4 focus:ring-slate-200"
-                  />
-                </div>
-                <div className="mt-6 flex flex-wrap gap-3">
-                  {initialTags.map((tag) => (
-                    <button
-                      key={tag}
-                      type="button"
-                      onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
-                      className={`rounded-full border px-4 py-2 text-sm transition ${
-                        selectedTag === tag
-                          ? "border-cyan-500 bg-cyan-500 text-white"
-                          : "border-slate-300 bg-white text-slate-700 hover:border-slate-400"
-                      }`}
-                    >
-                      {tag}
-                    </button>
-                  ))}
-                </div>
-              </div>
+                <p className="mt-4 text-sm leading-7 text-slate-600">
+                  Planned content will focus on healthcare data partnerships, clinical research, healthcare AI, genomics and responsible governance.
+                </p>
+              </Card>
 
               <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-2">
                 {insightCategories.slice(0, 4).map((category) => (
@@ -156,11 +111,7 @@ export function InsightsPage() {
             <Subheading>Planned insights</Subheading>
             <Heading>Draft topics for research stories, governance guidance and innovation analysis.</Heading>
           </div>
-          <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
-            {filteredArticles.map((article) => (
-              <ArticleCard key={article.id} article={article} />
-            ))}
-          </div>
+          <InsightsFilter articles={articles} />
         </Container>
       </section>
 
