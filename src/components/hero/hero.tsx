@@ -7,16 +7,16 @@ export function Hero() {
       <div className="mx-auto flex max-w-7xl flex-col gap-12 px-6 lg:px-8">
         <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
           <div className="max-w-3xl space-y-8">
-            <p className="text-sm font-semibold uppercase tracking-[0.32em] text-teal-600">Enterprise healthcare data</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.32em] text-teal-700">Enterprise healthcare data</p>
             <h1 className="text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
               {siteName} delivers governed healthcare datasets for life sciences and AI research.
             </h1>
             <p className="max-w-2xl text-lg leading-8 text-slate-700">{siteDescription}</p>
             <div className="flex flex-col gap-4 sm:flex-row">
-              <Button variant="primary" size="large">
+              <Button variant="primary" size="large" as="a" href="/data">
                 Explore our capabilities
               </Button>
-              <Button variant="secondary" size="large">
+              <Button variant="secondary" size="large" as="a" href="/contact">
                 Contact the team
               </Button>
             </div>

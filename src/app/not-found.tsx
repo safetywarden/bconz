@@ -8,12 +8,20 @@ export default function NotFound() {
       <p className="mt-4 max-w-xl text-base leading-7 text-slate-600">
         The page you were looking for cannot be found. Return to the homepage to continue exploring BCONZ.
       </p>
-      <Link
-        href="/"
-        className="mt-8 inline-flex rounded-full bg-slate-950 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
-      >
-        Back to Home
-      </Link>
+      <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+        <Link
+          href="/"
+          className="inline-flex rounded-full bg-slate-950 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400"
+        >
+          Back to Home
+        </Link>
+        <Link
+          href="/contact"
+          className="inline-flex rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-semibold text-slate-950 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400"
+        >
+          Contact BCONZ
+        </Link>
+      </div>
     </div>
   );
 }

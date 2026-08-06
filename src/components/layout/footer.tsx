@@ -27,7 +27,7 @@ export function Footer() {
 
           <div className="grid gap-6 sm:grid-cols-2">
             <div>
-              <h3 className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-300">Explore</h3>
+              <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-300">Explore</p>
               <ul className="mt-4 space-y-3 text-sm text-slate-400">
                 {footerLinks.slice(0, 4).map((link) => (
                   <li key={link.title}>
@@ -39,7 +39,7 @@ export function Footer() {
               </ul>
             </div>
             <div>
-              <h3 className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-300">Compliance</h3>
+              <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-300">Compliance</p>
               <ul className="mt-4 space-y-3 text-sm text-slate-400">
                 {footerLinks.slice(4).map((link) => (
                   <li key={link.title}>
@@ -55,22 +55,24 @@ export function Footer() {
 
         <div className="flex flex-col gap-8 border-t border-slate-800/80 pt-8 md:flex-row md:items-center md:justify-between">
           <div className="space-y-3">
-            <p className="text-sm uppercase tracking-[0.24em] text-slate-400">Newsletter</p>
+            <p className="text-sm uppercase tracking-[0.24em] text-slate-400">Enterprise enquiries</p>
             <p className="max-w-2xl text-sm leading-7 text-slate-300">
-              Subscribe for company updates and enterprise healthcare insights. Coming soon.
+              Contact BCONZ to discuss healthcare data partnerships, research collaboration and enterprise data readiness.
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-4 text-sm text-slate-300">
-            {socialLinks.map((item) => (
-              <Link key={item.title} href={item.href} className="transition-colors hover:text-white">
-                {item.title}
-              </Link>
-            ))}
-          </div>
+          {socialLinks.length ? (
+            <div className="flex flex-wrap items-center gap-4 text-sm text-slate-300">
+              {socialLinks.map((item) => (
+                <Link key={item.title} href={item.href} className="transition-colors hover:text-white">
+                  {item.title}
+                </Link>
+              ))}
+            </div>
+          ) : null}
         </div>
 
-        <p className="text-sm text-slate-500">© {new Date().getFullYear()} {siteName}. Trusted healthcare data partnerships for regulated research.</p>
+        <p className="text-sm text-slate-400">© {new Date().getFullYear()} {siteName}. Trusted healthcare data partnerships for regulated research.</p>
       </div>
     </footer>
   );

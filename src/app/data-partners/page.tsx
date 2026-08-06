@@ -1,12 +1,19 @@
+import { JsonLd } from "@/components/seo/JsonLd";
 import { createMetadata } from "@/lib/metadata";
 import { DataPartnersPage } from "@/components/data-partners/DataPartnersPage";
+import { getPageSeo } from "@/lib/seo";
+import { breadcrumbJsonLd, webPageJsonLd } from "@/lib/structured-data";
 
-export const metadata = createMetadata({
-  title: "Healthcare Data Partnerships | BCONZ",
-  description:
-    "Explore how hospitals, laboratories, biobanks and research institutions can partner with BCONZ through responsible healthcare data partnerships that support scientific discovery.",
-});
+const seo = getPageSeo("/data-partners");
+
+export const metadata = createMetadata(seo);
 
 export default function Page() {
-  return <DataPartnersPage />;
+  return (
+    <>
+      <JsonLd id="ld-data-partners-page" data={webPageJsonLd("/data-partners")} />
+      <JsonLd id="ld-data-partners-breadcrumb" data={breadcrumbJsonLd([{ name: "Home", path: "/" }, { name: "Data Partners", path: "/data-partners" }])} />
+      <DataPartnersPage />
+    </>
+  );
 }

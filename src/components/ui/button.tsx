@@ -1,4 +1,5 @@
 import type { AnchorHTMLAttributes, ButtonHTMLAttributes } from "react";
+import Link from "next/link";
 
 const baseStyles =
   "inline-flex items-center justify-center rounded-full border px-6 py-3 text-base font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60";
@@ -32,7 +33,17 @@ export function Button({
     .join(" ");
 
   if (as === "a") {
-    return <a className={classNames} {...(props as AnchorHTMLAttributes<HTMLAnchorElement>)} />;
+    const anchorProps = props as AnchorHTMLAttributes<HTMLAnchorElement>;
+    const href = anchorProps.href ?? "#";
+    const isInternal = href.startsWith("/") || href.startsWith("#");
+
+    if (isInternal) {
+      const { href: _href, ...rest } = anchorProps;
+      void _href;
+      return <Link href={href} className={classNames} {...rest} />;
+    }
+
+    return <a className={classNames} rel="noopener noreferrer" target="_blank" {...anchorProps} />;
   }
 
   return <button className={classNames} {...(props as ButtonHTMLAttributes<HTMLButtonElement>)} />;

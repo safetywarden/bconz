@@ -90,9 +90,6 @@ export function InsightsPage() {
                     placeholder="Search by topic, author, or keyword"
                     className="w-full rounded-3xl border border-slate-300 bg-white px-5 py-4 text-sm text-slate-950 outline-none transition focus:border-slate-500 focus:ring-4 focus:ring-slate-200"
                   />
-                  <Button variant="secondary" size="large" as="button">
-                    Search
-                  </Button>
                 </div>
                 <div className="mt-6 flex flex-wrap gap-3">
                   {initialTags.map((tag) => (

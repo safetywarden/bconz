@@ -21,8 +21,8 @@ export function FeaturedArticle({ article }: { article: FeaturedInsight }) {
           <span>{article.author}</span>
           <span>{article.date}</span>
         </div>
-        <Button variant="primary" size="large" as="a" href="#">
-          Read Article
+        <Button variant="primary" size="large" as="a" href="/contact">
+          Discuss this insight
         </Button>
       </div>
     </Card>

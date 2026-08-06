@@ -20,6 +20,8 @@ export const navigation: NavItem[] = [
 export const footerLinks: FooterLink[] = [
   { title: "Company", href: "/about" },
   { title: "Data", href: "/data" },
+  { title: "Request Data", href: "/request-data" },
+  { title: "Data Partners", href: "/data-partners" },
   { title: "Solutions", href: "/solutions" },
   { title: "Insights", href: "/insights" },
   { title: "Privacy", href: "/privacy" },
@@ -34,8 +36,4 @@ export const logoConfig: LogoConfig = {
   markAltText: "BCONZ mark",
 };
 
-export const socialLinks = [
-  { title: "LinkedIn", href: "#" },
-  { title: "Twitter", href: "#" },
-  { title: "Research", href: "#" },
-];
+export const socialLinks: Array<{ title: string; href: string }> = [];

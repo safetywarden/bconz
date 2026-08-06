@@ -1,12 +1,19 @@
+import { JsonLd } from "@/components/seo/JsonLd";
 import { createMetadata } from "@/lib/metadata";
 import { AboutPage } from "@/components/about/AboutPage";
+import { getPageSeo } from "@/lib/seo";
+import { breadcrumbJsonLd, webPageJsonLd } from "@/lib/structured-data";
 
-export const metadata = createMetadata({
-  title: "About BCONZ",
-  description:
-    "Learn about BCONZ, our mission, vision and commitment to trusted healthcare data partnerships supporting scientific discovery.",
-});
+const seo = getPageSeo("/about");
+
+export const metadata = createMetadata(seo);
 
 export default function Page() {
-  return <AboutPage />;
+  return (
+    <>
+      <JsonLd id="ld-about-page" data={webPageJsonLd("/about", "AboutPage")} />
+      <JsonLd id="ld-about-breadcrumb" data={breadcrumbJsonLd([{ name: "Home", path: "/" }, { name: "About", path: "/about" }])} />
+      <AboutPage />
+    </>
+  );
 }

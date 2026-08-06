@@ -179,7 +179,7 @@ export function DataPartnersPage() {
                 BCONZ collaborates with hospitals, laboratories and research institutions to support responsible healthcare data partnerships that accelerate scientific research while respecting institutional governance and patient privacy.
               </p>
               <div className="flex flex-col gap-4 sm:flex-row">
-                <Button variant="primary" size="large" as="a" href="/data-partners">
+                <Button variant="primary" size="large" as="a" href="/contact">
                   Become a Data Partner
                 </Button>
                 <Button variant="secondary" size="large" as="a" href="/contact">
@@ -384,7 +384,7 @@ export function DataPartnersPage() {
               Let&apos;s Build the Future of Healthcare Research Together
             </p>
             <div className="mt-8 grid gap-4 sm:grid-cols-2">
-              <Button variant="primary" size="large" as="a" href="/data-partners">
+              <Button variant="primary" size="large" as="a" href="/contact">
                 Become a Data Partner
               </Button>
               <Button variant="secondary" size="large" as="a" href="/contact">

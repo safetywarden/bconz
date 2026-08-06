@@ -21,8 +21,8 @@ export function ArticleCard({ article }: { article: InsightArticle }) {
           <span>{article.author}</span>
           <span>{article.date}</span>
         </div>
-        <Button variant="secondary" size="normal" as="a" href="#">
-          Read More
+        <Button variant="secondary" size="normal" as="a" href="/contact">
+          Discuss this insight
         </Button>
       </div>
     </Card>

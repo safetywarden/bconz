@@ -10,8 +10,8 @@ export function ResourceCard({ title, description, icon }: { title: string; desc
       </div>
       <p className="mt-6 text-lg font-semibold text-slate-950">{title}</p>
       <p className="mt-3 text-sm leading-6 text-slate-600">{description}</p>
-      <Button variant="secondary" size="normal" as="a" href="#" className="mt-6">
-        Download
+      <Button variant="secondary" size="normal" as="a" href="/contact" className="mt-6">
+        Request this resource
       </Button>
     </Card>
   );

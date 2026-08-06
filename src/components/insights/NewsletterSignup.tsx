@@ -9,16 +9,9 @@ export function NewsletterSignup() {
         <p className="mt-4 text-sm leading-6 text-slate-300">
           Subscribe to receive curated research perspectives, governance guidance and innovation updates from BCONZ.
         </p>
-        <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center">
-          <input
-            type="email"
-            placeholder="Enter your work email"
-            className="min-w-0 flex-1 rounded-2xl border border-slate-700 bg-slate-900 px-4 py-4 text-sm text-white outline-none placeholder:text-slate-500 focus:border-slate-300 focus:ring-4 focus:ring-slate-500/20"
-          />
-          <Button variant="primary" size="large" as="button">
-            Subscribe
-          </Button>
-        </div>
+        <Button variant="primary" size="large" as="a" href="/contact" className="mt-8">
+          Request insight updates
+        </Button>
       </div>
     </div>
   );

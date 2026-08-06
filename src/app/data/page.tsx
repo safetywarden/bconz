@@ -1,12 +1,19 @@
+import { JsonLd } from "@/components/seo/JsonLd";
 import { createMetadata } from "@/lib/metadata";
 import { ResearchDataPage } from "@/components/data/ResearchDataPage";
+import { getPageSeo } from "@/lib/seo";
+import { breadcrumbJsonLd, webPageJsonLd } from "@/lib/structured-data";
 
-export const metadata = createMetadata({
-  title: "Research Data | BCONZ",
-  description:
-    "Discover research-ready clinical, molecular, imaging and real-world healthcare data through trusted healthcare data partnerships.",
-});
+const seo = getPageSeo("/data");
+
+export const metadata = createMetadata(seo);
 
 export default function DataPage() {
-  return <ResearchDataPage />;
+  return (
+    <>
+      <JsonLd id="ld-data-page" data={webPageJsonLd("/data")} />
+      <JsonLd id="ld-data-breadcrumb" data={breadcrumbJsonLd([{ name: "Home", path: "/" }, { name: "Research Data", path: "/data" }])} />
+      <ResearchDataPage />
+    </>
+  );
 }

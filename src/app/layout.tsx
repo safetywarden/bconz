@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/layout/theme-provider";
@@ -6,8 +6,9 @@ import { Header } from "@/components/navigation/header";
 import { Footer } from "@/components/layout/footer";
 import { AnnouncementBar } from "@/components/layout/announcement-bar";
 import { BackToTopButton } from "@/components/layout/back-to-top";
+import { JsonLd } from "@/components/seo/JsonLd";
 import { createMetadata } from "@/lib/metadata";
-import { metadataBase } from "@/lib/site";
+import { organizationJsonLd, websiteJsonLd } from "@/lib/structured-data";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -21,6 +22,13 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = createMetadata();
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#020617",
+  colorScheme: "light",
+};
+
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
@@ -31,43 +39,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             Skip to content
           </a>
           <Header />
-          <script
-            id="ld-org"
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{
-              __html: JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "Organization",
-                name: "Bconz International (OPC) Pvt Ltd",
-                url: metadataBase.toString(),
-                logo: new URL("/images/brand/bconz-logo-horizontal.png", metadataBase).toString(),
-                contactPoint: [
-                  {
-                    "@type": "ContactPoint",
-                    telephone: "+91 7624841555",
-                    contactType: "customer service",
-                    areaServed: "IN",
-                  },
-                ],
-                address: [
-                  {
-                    "@type": "PostalAddress",
-                    streetAddress: "Manipal County Road",
-                    addressLocality: "Bangalore",
-                    postalCode: "560068",
-                    addressCountry: "IN",
-                  },
-                  {
-                    "@type": "PostalAddress",
-                    streetAddress: "60 Paya Lebar Road #06-53 Paya Lebar Square",
-                    addressLocality: "Singapore",
-                    postalCode: "409051",
-                    addressCountry: "SG",
-                  },
-                ],
-              }),
-            }}
-          />
+          <JsonLd id="ld-org" data={organizationJsonLd()} />
+          <JsonLd id="ld-website" data={websiteJsonLd()} />
           <div id="content" className="flex min-h-[calc(100vh-5rem)] flex-col">{children}</div>
           <Footer />
           <BackToTopButton />
