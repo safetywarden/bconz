@@ -1,13 +1,16 @@
 export type ResearchRequestSchema = {
-  organization: string;
+  organizationName: string;
   contactName: string;
-  role?: string;
+  jobTitle: string;
   businessEmail: string;
-  country?: string;
-  diseaseArea?: string;
+  phone: string;
+  country: string;
+  diseaseArea: string;
   researchObjective: string;
-  dataModalities?: string[];
-  estimatedTimeline?: string;
-  additionalInformation?: string;
-  consent: boolean;
+  dataModalities: string[];
+  estimatedTimeline: string;
+  additionalInformation: string;
+  privacyConsent: boolean;
+  sourcePage: string;
+  botcheck: string;
 };

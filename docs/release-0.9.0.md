@@ -11,7 +11,7 @@ Summary of work completed for Sprint 1.8 (Public website quality & launch readin
 Next recommended steps:
 - Manual responsive QA across listed widths.
 - Legal review of Privacy/Terms.
-- Integrate `SubmissionService` with a secure backend service.
+- Configure the production Web3Forms access key before accepting live contact submissions.
 
 Recommended commit message:
 "Sprint 1.8 - Public website quality and launch readiness"

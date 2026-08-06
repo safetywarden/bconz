@@ -26,7 +26,7 @@ Responsive:
 - Manual checks recommended across widths: 320,375,390,768,1024,1280,1440,1920.
 
 Known limitations / blockers:
-- Backend submission disabled/mocked; ensure `SubmissionService` is wired during integration.
+- Contact submissions use Web3Forms. Verify provider delivery after configuring `NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY` in the deployment environment.
 - Legal content requires review by qualified counsel before public launch.
 
 Commands run:
