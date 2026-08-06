@@ -24,8 +24,10 @@ export const footerLinks: FooterLink[] = [
   { title: "Data Partners", href: "/data-partners" },
   { title: "Solutions", href: "/solutions" },
   { title: "Insights", href: "/insights" },
-  { title: "Privacy", href: "/privacy" },
-  { title: "Terms", href: "/terms" },
+  { title: "Responsible Data & Governance", href: "/responsible-data-governance" },
+  { title: "Responsible AI Principles", href: "/responsible-ai-principles" },
+  { title: "Privacy Policy", href: "/privacy" },
+  { title: "Terms of Use", href: "/terms" },
   { title: "Contact", href: "/contact" },
 ];
 

@@ -10,6 +10,8 @@ export type PublicRoute =
   | "/contact"
   | "/privacy"
   | "/terms"
+  | "/responsible-data-governance"
+  | "/responsible-ai-principles"
   | "/solutions"
   | "/insights";
 
@@ -101,7 +103,7 @@ export const pageSeo: Record<PublicRoute, PageSeo> = {
     path: "/privacy",
     title: "Privacy Policy",
     description:
-      "Review BCONZ privacy commitments for healthcare data governance, research collaboration, enterprise partnerships and responsible data handling.",
+      "Review how BCONZ handles website and business enquiry information for healthcare data partnership discussions.",
     keywords: [
       "healthcare data privacy",
       "data governance",
@@ -113,11 +115,35 @@ export const pageSeo: Record<PublicRoute, PageSeo> = {
     path: "/terms",
     title: "Terms of Use",
     description:
-      "Review website terms for BCONZ corporate information, enterprise healthcare data partnerships, research collaboration and public website access.",
+      "Review the terms that apply when using the BCONZ website and public business enquiry pathways.",
     keywords: [
       "BCONZ terms",
       "healthcare data website terms",
       "enterprise research website",
+    ],
+  },
+  "/responsible-data-governance": {
+    path: "/responsible-data-governance",
+    title: "Responsible Data and Governance",
+    description:
+      "Review BCONZ principles for responsible healthcare data use, institutional ownership, privacy, governance and long-term collaboration.",
+    keywords: [
+      "responsible healthcare data",
+      "healthcare data governance",
+      "institution-led data partnerships",
+      "de-identification principles",
+    ],
+  },
+  "/responsible-ai-principles": {
+    path: "/responsible-ai-principles",
+    title: "Responsible AI Principles",
+    description:
+      "Review BCONZ principles for human-centred, privacy-conscious and scientifically rigorous healthcare AI collaboration.",
+    keywords: [
+      "responsible healthcare AI",
+      "healthcare AI principles",
+      "clinical AI governance",
+      "bias-aware AI research",
     ],
   },
   "/solutions": {

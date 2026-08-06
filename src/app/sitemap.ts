@@ -19,6 +19,8 @@ const sitemapConfig: Record<
   "/contact": { changeFrequency: "monthly", priority: 0.7 },
   "/privacy": { changeFrequency: "yearly", priority: 0.3 },
   "/terms": { changeFrequency: "yearly", priority: 0.3 },
+  "/responsible-data-governance": { changeFrequency: "monthly", priority: 0.6 },
+  "/responsible-ai-principles": { changeFrequency: "monthly", priority: 0.6 },
 };
 
 export default function sitemap(): MetadataRoute.Sitemap {
