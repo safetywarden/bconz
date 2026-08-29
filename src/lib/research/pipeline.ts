@@ -1,10 +1,10 @@
 import { detectMaterialChanges } from "./change-detection";
 import { detectHypothesisImpacts } from "./hypothesis-change";
+import { loadCandidateHypotheses } from "./hypothesis-registry";
 import { ingestPubmedDisease } from "./ingestion/pubmed";
 import { ingestClinicalTrialsDisease } from "./ingestion/clinical-trials";
 import { extractPubTator3 } from "./ingestion/pubtator3";
 import {
-  getCandidateHypotheses,
   persistEvidence,
   persistHypothesisImpacts,
   persistMaterialChanges,
@@ -57,7 +57,7 @@ export async function runResearchPipeline(input: ResearchPipelineInput) {
   const changePersistence = await persistMaterialChanges(diseaseName, changes);
 
   const hypotheses = includeHypothesisDetection
-    ? await getCandidateHypotheses(diseaseName)
+    ? await loadCandidateHypotheses(diseaseName)
     : [];
   const hypothesisImpacts = includeHypothesisDetection
     ? detectHypothesisImpacts(normalized, pubtator, hypotheses)
@@ -92,6 +92,7 @@ export async function runResearchPipeline(input: ResearchPipelineInput) {
     },
     hypothesisChanges: {
       enabled: includeHypothesisDetection,
+      registryDriven: true,
       hypothesesEvaluated: hypotheses.length,
       impactsLogged: hypothesisPersistence.logged,
       strengthen: hypothesisImpacts.filter((impact) => impact.direction === "STRENGTHEN").length,
