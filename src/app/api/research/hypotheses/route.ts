@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { assertResearchApiToken } from "@/lib/research/auth";
 import { loadCandidateHypotheses } from "@/lib/research/hypothesis-registry";
+import { resolveCandidateEntityLinks } from "@/lib/research/ontology";
 import { researchDb } from "@/lib/research/supabase-rest";
 
 const termList = z.array(z.string().trim().min(1).max(200)).max(100).default([]);
@@ -84,7 +85,8 @@ export async function POST(request: Request) {
       });
     }
 
-    return NextResponse.json({ ok: true, candidateId: data.candidateId, hypothesisVersion: data.hypothesisVersion }, { status: 201 });
+    const ontology = await resolveCandidateEntityLinks(data.candidateId);
+    return NextResponse.json({ ok: true, candidateId: data.candidateId, hypothesisVersion: data.hypothesisVersion, ontology }, { status: 201 });
   } catch (error) {
     const status = (error as Error & { status?: number }).status ?? 500;
     return NextResponse.json({ error: error instanceof Error ? error.message : "Registry write failed" }, { status });
