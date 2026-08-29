@@ -18,7 +18,6 @@ export async function persistEvidence(records: NormalizedEvidence[]) {
 
   const diseaseNames = [...new Set(records.map((record) => record.diseaseName))];
   const diseaseByName = new Map<string, string>();
-
   for (const diseaseName of diseaseNames) {
     const diseaseId = await getDiseaseId(diseaseName);
     if (diseaseId) diseaseByName.set(diseaseName, diseaseId);
@@ -31,114 +30,38 @@ export async function persistEvidence(records: NormalizedEvidence[]) {
       skippedUnknownDisease += 1;
       return [];
     }
-
-    return [{
-      disease_id: diseaseId,
-      source_type: record.sourceType,
-      source_id: record.sourceId,
-      source_url: record.sourceUrl,
-      title: record.title,
-      publication_date: record.publicationDate || null,
-      evidence_class: record.evidenceClass,
-      population: record.population || null,
-      extracted_claim: record.extractedClaim,
-      confidence: record.confidence,
-      review_state: "AI_EXTRACTED",
-      checked_at: new Date().toISOString(),
-    }];
+    return [{ disease_id: diseaseId, source_type: record.sourceType, source_id: record.sourceId, source_url: record.sourceUrl, title: record.title, publication_date: record.publicationDate || null, evidence_class: record.evidenceClass, population: record.population || null, extracted_claim: record.extractedClaim, confidence: record.confidence, review_state: "AI_EXTRACTED", checked_at: new Date().toISOString() }];
   });
 
   if (rows.length === 0) return { inserted: 0, skippedUnknownDisease };
-
-  await researchDb<unknown>("research_evidence?on_conflict=disease_id,source_type,source_id", {
-    method: "POST",
-    body: rows,
-    prefer: "resolution=merge-duplicates,return=minimal",
-  });
-
+  await researchDb<unknown>("research_evidence?on_conflict=disease_id,source_type,source_id", { method: "POST", body: rows, prefer: "resolution=merge-duplicates,return=minimal" });
   return { inserted: rows.length, skippedUnknownDisease };
 }
 
 export async function persistPubTatorExtraction(diseaseName: string, extraction: PubTatorExtraction) {
   const diseaseId = await getDiseaseId(diseaseName);
   if (!diseaseId) return { entities: 0, relations: 0 };
-
-  const evidenceRows = await researchDb<EvidenceRow[]>(
-    `research_evidence?disease_id=eq.${diseaseId}&source_type=eq.PUBMED&select=id,source_id`,
-  );
-  const evidenceBySourceId = new Map(
-    evidenceRows.flatMap((row) => row.source_id ? [[row.source_id, row.id] as const] : []),
-  );
+  const evidenceRows = await researchDb<EvidenceRow[]>(`research_evidence?disease_id=eq.${diseaseId}&source_type=eq.PUBMED&select=id,source_id`);
+  const evidenceBySourceId = new Map(evidenceRows.flatMap((row) => row.source_id ? [[row.source_id, row.id] as const] : []));
 
   const entityRows = extraction.entities.flatMap((entity) => {
     const evidenceId = evidenceBySourceId.get(entity.evidenceSourceId);
-    if (!evidenceId) return [];
-    return [{
-      evidence_id: evidenceId,
-      entity_type: entity.entityType,
-      normalized_id: entity.normalizedId ?? null,
-      text: entity.text,
-      source: "PUBTATOR3",
-    }];
+    return evidenceId ? [{ evidence_id: evidenceId, entity_type: entity.entityType, normalized_id: entity.normalizedId ?? null, text: entity.text, source: "PUBTATOR3" }] : [];
   });
-
   const relationRows = extraction.relations.flatMap((relation) => {
     const evidenceId = evidenceBySourceId.get(relation.evidenceSourceId);
-    if (!evidenceId) return [];
-    return [{
-      evidence_id: evidenceId,
-      relation_type: relation.relationType,
-      entity1_type: relation.entity1Type ?? null,
-      entity1_id: relation.entity1Id ?? null,
-      entity1_text: relation.entity1Text ?? null,
-      entity2_type: relation.entity2Type ?? null,
-      entity2_id: relation.entity2Id ?? null,
-      entity2_text: relation.entity2Text ?? null,
-      source: "PUBTATOR3",
-    }];
+    return evidenceId ? [{ evidence_id: evidenceId, relation_type: relation.relationType, entity1_type: relation.entity1Type ?? null, entity1_id: relation.entity1Id ?? null, entity1_text: relation.entity1Text ?? null, entity2_type: relation.entity2Type ?? null, entity2_id: relation.entity2Id ?? null, entity2_text: relation.entity2Text ?? null, source: "PUBTATOR3" }] : [];
   });
 
-  if (entityRows.length > 0) {
-    await researchDb<unknown>("research_evidence_entities?on_conflict=evidence_id,entity_type,normalized_id,text", {
-      method: "POST",
-      body: entityRows,
-      prefer: "resolution=merge-duplicates,return=minimal",
-    });
-  }
-
-  if (relationRows.length > 0) {
-    await researchDb<unknown>("research_evidence_relations?on_conflict=evidence_id,relation_type,entity1_id,entity2_id", {
-      method: "POST",
-      body: relationRows,
-      prefer: "resolution=merge-duplicates,return=minimal",
-    });
-  }
-
+  if (entityRows.length > 0) await researchDb<unknown>("research_evidence_entities?on_conflict=evidence_id,entity_type,normalized_id,text", { method: "POST", body: entityRows, prefer: "resolution=merge-duplicates,return=minimal" });
+  if (relationRows.length > 0) await researchDb<unknown>("research_evidence_relations?on_conflict=evidence_id,relation_type,entity1_id,entity2_id", { method: "POST", body: relationRows, prefer: "resolution=merge-duplicates,return=minimal" });
   return { entities: entityRows.length, relations: relationRows.length };
 }
 
 export async function persistMaterialChanges(diseaseName: string, changes: MaterialChange[]) {
   const diseaseId = await getDiseaseId(diseaseName);
   if (!diseaseId || changes.length === 0) return { logged: 0 };
-
-  const rows = changes.map((change) => ({
-    disease_id: diseaseId,
-    event_date: change.eventDate,
-    development: change.development,
-    impact: change.impact,
-    estimated_score_delta: change.estimatedScoreDelta,
-    material_review_required: change.materialReviewRequired,
-    severity: change.severity,
-    trigger_type: change.triggerType,
-    source_type: change.sourceType,
-    source_id: change.sourceId,
-  }));
-
-  await researchDb<unknown>("evidence_change_log", {
-    method: "POST",
-    body: rows,
-    prefer: "return=minimal",
-  });
-
+  const rows = changes.map((change) => ({ disease_id: diseaseId, event_date: change.eventDate, development: change.development, impact: change.impact, estimated_score_delta: change.estimatedScoreDelta, material_review_required: change.materialReviewRequired, severity: change.severity, trigger_type: change.triggerType, source_type: change.sourceType, source_id: change.sourceId }));
+  await researchDb<unknown>("evidence_change_log?on_conflict=disease_id,source_type,source_id,trigger_type", { method: "POST", body: rows, prefer: "resolution=merge-duplicates,return=minimal" });
   return { logged: rows.length };
 }
