@@ -4,16 +4,27 @@ import type { NormalizedEvidence } from "./types";
 type DiseaseRow = { id: string; canonical_name: string };
 
 export async function persistEvidence(records: NormalizedEvidence[]) {
-  if (records.length === 0) return { inserted: 0 };
+  if (records.length === 0) return { inserted: 0, skippedUnknownDisease: 0 };
 
   const diseaseNames = [...new Set(records.map((record) => record.diseaseName))];
-  const filter = encodeURIComponent(`(${diseaseNames.map((name) => `\"${name.replace(/\"/g, "") }\"`).join(",")})`);
-  const diseases = await researchDb<DiseaseRow[]>(`research_diseases?canonical_name=in.${filter}&select=id,canonical_name`);
-  const diseaseByName = new Map(diseases.map((row) => [row.canonical_name, row.id]));
+  const diseaseByName = new Map<string, string>();
 
+  for (const diseaseName of diseaseNames) {
+    const rows = await researchDb<DiseaseRow[]>(
+      `research_diseases?canonical_name=eq.${encodeURIComponent(diseaseName)}&select=id,canonical_name`,
+    );
+    const row = rows[0];
+    if (row) diseaseByName.set(row.canonical_name, row.id);
+  }
+
+  let skippedUnknownDisease = 0;
   const rows = records.flatMap((record) => {
     const diseaseId = diseaseByName.get(record.diseaseName);
-    if (!diseaseId) return [];
+    if (!diseaseId) {
+      skippedUnknownDisease += 1;
+      return [];
+    }
+
     return [{
       disease_id: diseaseId,
       source_type: record.sourceType,
@@ -30,11 +41,13 @@ export async function persistEvidence(records: NormalizedEvidence[]) {
     }];
   });
 
-  if (rows.length === 0) return { inserted: 0 };
+  if (rows.length === 0) return { inserted: 0, skippedUnknownDisease };
+
   await researchDb<unknown>("research_evidence?on_conflict=disease_id,source_type,source_id", {
     method: "POST",
     body: rows,
     prefer: "resolution=merge-duplicates,return=minimal",
   });
-  return { inserted: rows.length };
+
+  return { inserted: rows.length, skippedUnknownDisease };
 }
