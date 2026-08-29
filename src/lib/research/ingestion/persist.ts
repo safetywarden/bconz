@@ -1,7 +1,17 @@
 import { researchDb } from "../supabase-rest";
+import type { MaterialChange } from "../change-detection";
 import type { NormalizedEvidence } from "./types";
+import type { PubTatorExtraction } from "./pubtator3";
 
 type DiseaseRow = { id: string; canonical_name: string };
+type EvidenceRow = { id: string; source_id: string | null };
+
+async function getDiseaseId(diseaseName: string): Promise<string | undefined> {
+  const rows = await researchDb<DiseaseRow[]>(
+    `research_diseases?canonical_name=eq.${encodeURIComponent(diseaseName)}&select=id,canonical_name`,
+  );
+  return rows[0]?.id;
+}
 
 export async function persistEvidence(records: NormalizedEvidence[]) {
   if (records.length === 0) return { inserted: 0, skippedUnknownDisease: 0 };
@@ -10,11 +20,8 @@ export async function persistEvidence(records: NormalizedEvidence[]) {
   const diseaseByName = new Map<string, string>();
 
   for (const diseaseName of diseaseNames) {
-    const rows = await researchDb<DiseaseRow[]>(
-      `research_diseases?canonical_name=eq.${encodeURIComponent(diseaseName)}&select=id,canonical_name`,
-    );
-    const row = rows[0];
-    if (row) diseaseByName.set(row.canonical_name, row.id);
+    const diseaseId = await getDiseaseId(diseaseName);
+    if (diseaseId) diseaseByName.set(diseaseName, diseaseId);
   }
 
   let skippedUnknownDisease = 0;
@@ -50,4 +57,88 @@ export async function persistEvidence(records: NormalizedEvidence[]) {
   });
 
   return { inserted: rows.length, skippedUnknownDisease };
+}
+
+export async function persistPubTatorExtraction(diseaseName: string, extraction: PubTatorExtraction) {
+  const diseaseId = await getDiseaseId(diseaseName);
+  if (!diseaseId) return { entities: 0, relations: 0 };
+
+  const evidenceRows = await researchDb<EvidenceRow[]>(
+    `research_evidence?disease_id=eq.${diseaseId}&source_type=eq.PUBMED&select=id,source_id`,
+  );
+  const evidenceBySourceId = new Map(
+    evidenceRows.flatMap((row) => row.source_id ? [[row.source_id, row.id] as const] : []),
+  );
+
+  const entityRows = extraction.entities.flatMap((entity) => {
+    const evidenceId = evidenceBySourceId.get(entity.evidenceSourceId);
+    if (!evidenceId) return [];
+    return [{
+      evidence_id: evidenceId,
+      entity_type: entity.entityType,
+      normalized_id: entity.normalizedId ?? null,
+      text: entity.text,
+      source: "PUBTATOR3",
+    }];
+  });
+
+  const relationRows = extraction.relations.flatMap((relation) => {
+    const evidenceId = evidenceBySourceId.get(relation.evidenceSourceId);
+    if (!evidenceId) return [];
+    return [{
+      evidence_id: evidenceId,
+      relation_type: relation.relationType,
+      entity1_type: relation.entity1Type ?? null,
+      entity1_id: relation.entity1Id ?? null,
+      entity1_text: relation.entity1Text ?? null,
+      entity2_type: relation.entity2Type ?? null,
+      entity2_id: relation.entity2Id ?? null,
+      entity2_text: relation.entity2Text ?? null,
+      source: "PUBTATOR3",
+    }];
+  });
+
+  if (entityRows.length > 0) {
+    await researchDb<unknown>("research_evidence_entities?on_conflict=evidence_id,entity_type,normalized_id,text", {
+      method: "POST",
+      body: entityRows,
+      prefer: "resolution=merge-duplicates,return=minimal",
+    });
+  }
+
+  if (relationRows.length > 0) {
+    await researchDb<unknown>("research_evidence_relations?on_conflict=evidence_id,relation_type,entity1_id,entity2_id", {
+      method: "POST",
+      body: relationRows,
+      prefer: "resolution=merge-duplicates,return=minimal",
+    });
+  }
+
+  return { entities: entityRows.length, relations: relationRows.length };
+}
+
+export async function persistMaterialChanges(diseaseName: string, changes: MaterialChange[]) {
+  const diseaseId = await getDiseaseId(diseaseName);
+  if (!diseaseId || changes.length === 0) return { logged: 0 };
+
+  const rows = changes.map((change) => ({
+    disease_id: diseaseId,
+    event_date: change.eventDate,
+    development: change.development,
+    impact: change.impact,
+    estimated_score_delta: change.estimatedScoreDelta,
+    material_review_required: change.materialReviewRequired,
+    severity: change.severity,
+    trigger_type: change.triggerType,
+    source_type: change.sourceType,
+    source_id: change.sourceId,
+  }));
+
+  await researchDb<unknown>("evidence_change_log", {
+    method: "POST",
+    body: rows,
+    prefer: "return=minimal",
+  });
+
+  return { logged: rows.length };
 }
