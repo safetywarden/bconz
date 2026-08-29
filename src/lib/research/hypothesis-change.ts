@@ -11,6 +11,17 @@ export type CandidateHypothesis = {
   biomarker?: string;
   regimenConcept?: string;
   currentDraScore?: number;
+  aliases?: string[];
+  diseaseAliases?: string[];
+  mechanismTerms?: string[];
+  biomarkerTerms?: string[];
+  phenotypeTerms?: string[];
+  genotypeTerms?: string[];
+  regimenTerms?: string[];
+  positiveSignalTerms?: string[];
+  negativeSignalTerms?: string[];
+  killCriteria?: string[];
+  responderSubgroup?: string;
 };
 
 export type HypothesisImpact = {
@@ -32,7 +43,7 @@ export type HypothesisImpact = {
 const positiveRelationTypes = new Set(["TREAT", "PREVENT", "STIMULATE", "POSITIVE_CORRELATE"]);
 const negativeRelationTypes = new Set(["CAUSE", "NEGATIVE_CORRELATE"]);
 
-const killPatterns = [
+const defaultKillPatterns = [
   /failed to meet (the )?(primary|key) endpoint/i,
   /no significant (clinical )?benefit/i,
   /lack of efficacy/i,
@@ -42,7 +53,7 @@ const killPatterns = [
   /withdrawn due to safety/i,
 ];
 
-const weakenPatterns = [
+const defaultWeakenPatterns = [
   /did not improve/i,
   /not associated with (improvement|benefit)/i,
   /adverse event/i,
@@ -51,7 +62,7 @@ const weakenPatterns = [
   /insufficient exposure/i,
 ];
 
-const strengthenPatterns = [
+const defaultStrengthenPatterns = [
   /responder/i,
   /biomarker/i,
   /improved|improvement|benefit/i,
@@ -65,27 +76,49 @@ function normalized(value?: string) {
   return value?.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim() ?? "";
 }
 
-function drugMentioned(candidate: CandidateHypothesis, text: string, relations: PubTatorRelation[]) {
-  const drug = normalized(candidate.drugName);
-  if (!drug) return false;
-  if (normalized(text).includes(drug)) return true;
-  return relations.some((relation) =>
-    [relation.entity1Text, relation.entity2Text].some((value) => normalized(value).includes(drug)),
-  );
+function anyTermMentioned(terms: string[] | undefined, text: string) {
+  const haystack = normalized(text);
+  return (terms ?? []).some((term) => {
+    const needle = normalized(term);
+    return needle.length >= 2 && haystack.includes(needle);
+  });
 }
 
-function biomarkerMentioned(candidate: CandidateHypothesis, text: string) {
-  const biomarker = normalized(candidate.biomarker);
-  if (!biomarker) return false;
-  return normalized(text).includes(biomarker);
+function candidateDrugTerms(candidate: CandidateHypothesis) {
+  return [...new Set([candidate.drugName, ...(candidate.aliases ?? [])].filter(Boolean))];
+}
+
+function diseaseMatches(candidate: CandidateHypothesis, diseaseName: string) {
+  const incoming = normalized(diseaseName);
+  return [candidate.diseaseName, ...(candidate.diseaseAliases ?? [])]
+    .some((term) => normalized(term) === incoming);
+}
+
+function drugMentioned(candidate: CandidateHypothesis, text: string, relations: PubTatorRelation[]) {
+  const drugTerms = candidateDrugTerms(candidate).map(normalized).filter(Boolean);
+  const body = normalized(text);
+  if (drugTerms.some((term) => body.includes(term))) return true;
+
+  return relations.some((relation) => {
+    const values = [normalized(relation.entity1Text), normalized(relation.entity2Text)];
+    return drugTerms.some((term) => values.some((value) => value.includes(term)));
+  });
 }
 
 function relatedRelations(candidate: CandidateHypothesis, relations: PubTatorRelation[]) {
-  const drug = normalized(candidate.drugName);
+  const drugTerms = candidateDrugTerms(candidate).map(normalized).filter(Boolean);
   return relations.filter((relation) => {
     const left = normalized(relation.entity1Text);
     const right = normalized(relation.entity2Text);
-    return Boolean(drug && (left.includes(drug) || right.includes(drug)));
+    return drugTerms.some((term) => left.includes(term) || right.includes(term));
+  });
+}
+
+function candidateSpecificKill(candidate: CandidateHypothesis, text: string) {
+  const body = normalized(text);
+  return (candidate.killCriteria ?? []).some((criterion) => {
+    const terms = normalized(criterion).split(" ").filter((term) => term.length >= 5);
+    return terms.length >= 2 && terms.filter((term) => body.includes(term)).length >= Math.min(3, terms.length);
   });
 }
 
@@ -108,25 +141,42 @@ export function detectHypothesisImpacts(
     const sourceRelations = relationsBySource.get(item.sourceId) ?? [];
 
     for (const hypothesis of hypotheses) {
-      if (normalized(hypothesis.diseaseName) !== normalized(item.diseaseName)) continue;
+      if (!diseaseMatches(hypothesis, item.diseaseName)) continue;
       if (!drugMentioned(hypothesis, text, sourceRelations)) continue;
 
       const matchedSignals: string[] = [];
       const rels = relatedRelations(hypothesis, sourceRelations);
       const hasPositiveRelation = rels.some((relation) => positiveRelationTypes.has(relation.relationType.toUpperCase()));
       const hasNegativeRelation = rels.some((relation) => negativeRelationTypes.has(relation.relationType.toUpperCase()));
-      const hardKill = killPatterns.some((pattern) => pattern.test(text));
-      const weaken = weakenPatterns.some((pattern) => pattern.test(text)) || hasNegativeRelation;
-      const strengthen = strengthenPatterns.some((pattern) => pattern.test(text)) || hasPositiveRelation;
-      const biomarkerHit = biomarkerMentioned(hypothesis, text);
+      const hardKill = defaultKillPatterns.some((pattern) => pattern.test(text)) || candidateSpecificKill(hypothesis, text);
+      const customNegative = anyTermMentioned(hypothesis.negativeSignalTerms, text);
+      const customPositive = anyTermMentioned(hypothesis.positiveSignalTerms, text);
+      const weaken = defaultWeakenPatterns.some((pattern) => pattern.test(text)) || hasNegativeRelation || customNegative;
+      const strengthen = defaultStrengthenPatterns.some((pattern) => pattern.test(text)) || hasPositiveRelation || customPositive;
 
-      if (hardKill) matchedSignals.push("fatal-negative-human/safety signal");
+      const biomarkerHit = anyTermMentioned(
+        [hypothesis.biomarker ?? "", ...(hypothesis.biomarkerTerms ?? [])].filter(Boolean),
+        text,
+      );
+      const genotypeHit = anyTermMentioned(hypothesis.genotypeTerms, text);
+      const mechanismHit = anyTermMentioned(hypothesis.mechanismTerms, text);
+      const phenotypeHit = anyTermMentioned(hypothesis.phenotypeTerms, text);
+      const regimenHit = anyTermMentioned(hypothesis.regimenTerms, text);
+
+      if (hardKill) matchedSignals.push("candidate kill/hard-gate signal");
       if (hasNegativeRelation) matchedSignals.push("negative PubTator relation");
       if (hasPositiveRelation) matchedSignals.push("positive PubTator relation");
       if (biomarkerHit) matchedSignals.push("candidate biomarker matched");
+      if (genotypeHit) matchedSignals.push("candidate genotype matched");
+      if (mechanismHit) matchedSignals.push("candidate mechanism matched");
+      if (phenotypeHit) matchedSignals.push("candidate phenotype matched");
+      if (regimenHit) matchedSignals.push("candidate regimen matched");
+      if (customPositive) matchedSignals.push("registry positive signal matched");
+      if (customNegative) matchedSignals.push("registry negative signal matched");
       if (strengthen) matchedSignals.push("supportive translational/clinical language");
       if (weaken) matchedSignals.push("negative efficacy/safety language");
 
+      const specificityHits = [biomarkerHit, genotypeHit, mechanismHit, phenotypeHit, regimenHit].filter(Boolean).length;
       let direction: HypothesisDirection = "NEUTRAL";
       let proposedDraDelta = 0;
       let proposedRdiaDelta = 0;
@@ -138,17 +188,17 @@ export function detectHypothesisImpacts(
         proposedDraDelta = -20;
         proposedRdiaDelta = -5;
         hardGateCandidate = true;
-        confidence = 90;
+        confidence = Math.min(95, 88 + specificityHits * 2);
       } else if (weaken && !strengthen) {
         direction = "WEAKEN";
-        proposedDraDelta = -5;
-        proposedRdiaDelta = -2;
-        confidence = hasNegativeRelation ? 80 : 70;
+        proposedDraDelta = specificityHits >= 2 ? -7 : -5;
+        proposedRdiaDelta = specificityHits >= 2 ? -3 : -2;
+        confidence = Math.min(90, (hasNegativeRelation || customNegative ? 78 : 68) + specificityHits * 3);
       } else if (strengthen) {
         direction = "STRENGTHEN";
-        proposedDraDelta = biomarkerHit ? 5 : 3;
-        proposedRdiaDelta = biomarkerHit ? 2 : 1;
-        confidence = hasPositiveRelation || biomarkerHit ? 80 : 70;
+        proposedDraDelta = specificityHits >= 2 ? 5 : 3;
+        proposedRdiaDelta = specificityHits >= 2 ? 2 : 1;
+        confidence = Math.min(92, (hasPositiveRelation || customPositive ? 78 : 68) + specificityHits * 3);
       }
 
       impacts.push({
@@ -163,11 +213,11 @@ export function detectHypothesisImpacts(
         proposedRdiaDelta,
         hardGateCandidate,
         rationale: direction === "KILL"
-          ? "New evidence may invalidate a DRA hard-gate assumption and requires immediate expert review."
+          ? "New evidence may invalidate a candidate-specific DRA hard-gate or kill criterion and requires immediate expert review."
           : direction === "WEAKEN"
-            ? "New evidence appears inconsistent with efficacy, safety, exposure, or responder assumptions."
+            ? "New evidence conflicts with candidate efficacy, safety, exposure, responder, biomarker, genotype, or mechanism assumptions."
             : direction === "STRENGTHEN"
-              ? "New evidence supports the drug-disease, responder, biomarker, or translational hypothesis."
+              ? "New evidence supports the candidate drug-disease, responder, biomarker, genotype, mechanism, phenotype, or regimen hypothesis."
               : "Evidence mentions the candidate but does not yet justify a score change.",
         matchedSignals,
         requiresHumanReview: direction !== "NEUTRAL",
