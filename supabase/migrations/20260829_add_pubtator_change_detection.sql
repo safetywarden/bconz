@@ -35,6 +35,8 @@ alter table evidence_change_log
   add column if not exists source_type text,
   add column if not exists source_id text;
 
+create unique index if not exists uq_change_log_source_event
+  on evidence_change_log(disease_id, source_type, source_id, trigger_type);
 create index if not exists idx_evidence_entities_evidence on research_evidence_entities(evidence_id);
 create index if not exists idx_evidence_entities_norm on research_evidence_entities(entity_type, normalized_id);
 create index if not exists idx_evidence_relations_evidence on research_evidence_relations(evidence_id);
