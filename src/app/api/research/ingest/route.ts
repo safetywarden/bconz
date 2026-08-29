@@ -3,11 +3,11 @@ import { z } from "zod";
 import { assertResearchApiToken } from "@/lib/research/auth";
 import { detectMaterialChanges } from "@/lib/research/change-detection";
 import { detectHypothesisImpacts } from "@/lib/research/hypothesis-change";
+import { loadCandidateHypotheses } from "@/lib/research/hypothesis-registry";
 import { ingestPubmedDisease } from "@/lib/research/ingestion/pubmed";
 import { ingestClinicalTrialsDisease } from "@/lib/research/ingestion/clinical-trials";
 import { extractPubTator3 } from "@/lib/research/ingestion/pubtator3";
 import {
-  getCandidateHypotheses,
   persistEvidence,
   persistHypothesisImpacts,
   persistMaterialChanges,
@@ -53,7 +53,7 @@ export async function POST(request: Request) {
     const changePersistence = await persistMaterialChanges(diseaseName, changes);
 
     const hypotheses = includeHypothesisDetection
-      ? await getCandidateHypotheses(diseaseName)
+      ? await loadCandidateHypotheses(diseaseName)
       : [];
     const hypothesisImpacts = includeHypothesisDetection
       ? detectHypothesisImpacts(normalized, pubtator, hypotheses)
@@ -84,6 +84,7 @@ export async function POST(request: Request) {
       },
       hypothesisChanges: {
         enabled: includeHypothesisDetection,
+        registryDriven: true,
         hypothesesEvaluated: hypotheses.length,
         impactsLogged: hypothesisPersistence.logged,
         strengthen: hypothesisImpacts.filter((impact) => impact.direction === "STRENGTHEN").length,
