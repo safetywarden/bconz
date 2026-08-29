@@ -1,16 +1,45 @@
 import { researchDb } from "../supabase-rest";
 import type { MaterialChange } from "../change-detection";
+import type { CandidateHypothesis, HypothesisImpact } from "../hypothesis-change";
 import type { NormalizedEvidence } from "./types";
 import type { PubTatorExtraction } from "./pubtator3";
 
 type DiseaseRow = { id: string; canonical_name: string };
 type EvidenceRow = { id: string; source_id: string | null };
+type CandidateRow = {
+  id: string;
+  disease_id: string;
+  drug_name: string;
+  responder_hypothesis: string | null;
+  biomarker: string | null;
+  regimen_concept: string | null;
+  dra_score: number | null;
+};
 
 async function getDiseaseId(diseaseName: string): Promise<string | undefined> {
   const rows = await researchDb<DiseaseRow[]>(
     `research_diseases?canonical_name=eq.${encodeURIComponent(diseaseName)}&select=id,canonical_name`,
   );
   return rows[0]?.id;
+}
+
+export async function getCandidateHypotheses(diseaseName: string): Promise<CandidateHypothesis[]> {
+  const diseaseId = await getDiseaseId(diseaseName);
+  if (!diseaseId) return [];
+
+  const rows = await researchDb<CandidateRow[]>(
+    `repurposing_candidates?disease_id=eq.${diseaseId}&select=id,disease_id,drug_name,responder_hypothesis,biomarker,regimen_concept,dra_score`,
+  );
+
+  return rows.map((row) => ({
+    candidateId: row.id,
+    diseaseName,
+    drugName: row.drug_name,
+    responderHypothesis: row.responder_hypothesis ?? undefined,
+    biomarker: row.biomarker ?? undefined,
+    regimenConcept: row.regimen_concept ?? undefined,
+    currentDraScore: row.dra_score ?? undefined,
+  }));
 }
 
 export async function persistEvidence(records: NormalizedEvidence[]) {
@@ -63,5 +92,39 @@ export async function persistMaterialChanges(diseaseName: string, changes: Mater
   if (!diseaseId || changes.length === 0) return { logged: 0 };
   const rows = changes.map((change) => ({ disease_id: diseaseId, event_date: change.eventDate, development: change.development, impact: change.impact, estimated_score_delta: change.estimatedScoreDelta, material_review_required: change.materialReviewRequired, severity: change.severity, trigger_type: change.triggerType, source_type: change.sourceType, source_id: change.sourceId }));
   await researchDb<unknown>("evidence_change_log?on_conflict=disease_id,source_type,source_id,trigger_type", { method: "POST", body: rows, prefer: "resolution=merge-duplicates,return=minimal" });
+  return { logged: rows.length };
+}
+
+export async function persistHypothesisImpacts(diseaseName: string, impacts: HypothesisImpact[]) {
+  const diseaseId = await getDiseaseId(diseaseName);
+  if (!diseaseId || impacts.length === 0) return { logged: 0 };
+
+  const rows = impacts.flatMap((impact) => {
+    if (!impact.candidateId) return [];
+    return [{
+      candidate_id: impact.candidateId,
+      disease_id: diseaseId,
+      source_type: impact.sourceType,
+      source_id: impact.sourceId,
+      direction: impact.direction,
+      confidence: impact.confidence,
+      proposed_dra_delta: impact.proposedDraDelta,
+      proposed_rdia_delta: impact.proposedRdiaDelta,
+      hard_gate_candidate: impact.hardGateCandidate,
+      rationale: impact.rationale,
+      matched_signals: impact.matchedSignals,
+      requires_human_review: impact.requiresHumanReview,
+      review_status: "PENDING",
+    }];
+  });
+
+  if (rows.length === 0) return { logged: 0 };
+
+  await researchDb<unknown>("hypothesis_change_events?on_conflict=candidate_id,source_type,source_id", {
+    method: "POST",
+    body: rows,
+    prefer: "resolution=merge-duplicates,return=minimal",
+  });
+
   return { logged: rows.length };
 }
