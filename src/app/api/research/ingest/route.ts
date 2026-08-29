@@ -1,18 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { assertResearchApiToken } from "@/lib/research/auth";
-import { detectMaterialChanges } from "@/lib/research/change-detection";
-import { detectHypothesisImpacts } from "@/lib/research/hypothesis-change";
-import { loadCandidateHypotheses } from "@/lib/research/hypothesis-registry";
-import { ingestPubmedDisease } from "@/lib/research/ingestion/pubmed";
-import { ingestClinicalTrialsDisease } from "@/lib/research/ingestion/clinical-trials";
-import { extractPubTator3 } from "@/lib/research/ingestion/pubtator3";
-import {
-  persistEvidence,
-  persistHypothesisImpacts,
-  persistMaterialChanges,
-  persistPubTatorExtraction,
-} from "@/lib/research/ingestion/persist";
+import { runResearchPipeline } from "@/lib/research/pipeline";
 
 const requestSchema = z.object({
   diseaseName: z.string().trim().min(2).max(200),
@@ -20,6 +9,7 @@ const requestSchema = z.object({
   limitPerSource: z.number().int().min(1).max(100).default(20),
   includePubTator3: z.boolean().default(true),
   includeHypothesisDetection: z.boolean().default(true),
+  includeOntologyResolution: z.boolean().default(true),
 });
 
 export async function POST(request: Request) {
@@ -30,74 +20,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid request", details: parsed.error.flatten() }, { status: 400 });
     }
 
-    const { diseaseName, sources, limitPerSource, includePubTator3, includeHypothesisDetection } = parsed.data;
-    const results = await Promise.all(
-      sources.map((source) =>
-        source === "PUBMED"
-          ? ingestPubmedDisease(diseaseName, limitPerSource)
-          : ingestClinicalTrialsDisease(diseaseName, limitPerSource),
-      ),
-    );
-    const normalized = results.flatMap((result) => result.normalized);
-    const persistence = await persistEvidence(normalized);
-
-    const pubmedEvidence = normalized.filter((item) => item.sourceType === "PUBMED");
-    const pubtator = includePubTator3
-      ? await extractPubTator3(pubmedEvidence)
-      : { entities: [], relations: [] };
-    const pubtatorPersistence = includePubTator3
-      ? await persistPubTatorExtraction(diseaseName, pubtator)
-      : { entities: 0, relations: 0 };
-
-    const changes = detectMaterialChanges(normalized, pubtator);
-    const changePersistence = await persistMaterialChanges(diseaseName, changes);
-
-    const hypotheses = includeHypothesisDetection
-      ? await loadCandidateHypotheses(diseaseName)
-      : [];
-    const hypothesisImpacts = includeHypothesisDetection
-      ? detectHypothesisImpacts(normalized, pubtator, hypotheses)
-      : [];
-    const hypothesisPersistence = includeHypothesisDetection
-      ? await persistHypothesisImpacts(diseaseName, hypothesisImpacts)
-      : { logged: 0 };
-
-    return NextResponse.json({
-      diseaseName,
-      fetched: results.reduce((sum, result) => sum + result.fetched, 0),
-      normalized: normalized.length,
-      persisted: persistence.inserted,
-      skippedUnknownDisease: persistence.skippedUnknownDisease,
-      pubtator3: {
-        enabled: includePubTator3,
-        entitiesExtracted: pubtator.entities.length,
-        relationsExtracted: pubtator.relations.length,
-        entitiesPersisted: pubtatorPersistence.entities,
-        relationsPersisted: pubtatorPersistence.relations,
-      },
-      materialChanges: {
-        logged: changePersistence.logged,
-        red: changes.filter((change) => change.severity === "RED").length,
-        amber: changes.filter((change) => change.severity === "AMBER").length,
-        green: changes.filter((change) => change.severity === "GREEN").length,
-        reviewRequired: changes.filter((change) => change.materialReviewRequired).length,
-      },
-      hypothesisChanges: {
-        enabled: includeHypothesisDetection,
-        registryDriven: true,
-        hypothesesEvaluated: hypotheses.length,
-        impactsLogged: hypothesisPersistence.logged,
-        strengthen: hypothesisImpacts.filter((impact) => impact.direction === "STRENGTHEN").length,
-        weaken: hypothesisImpacts.filter((impact) => impact.direction === "WEAKEN").length,
-        kill: hypothesisImpacts.filter((impact) => impact.direction === "KILL").length,
-        neutral: hypothesisImpacts.filter((impact) => impact.direction === "NEUTRAL").length,
-        hardGateCandidates: hypothesisImpacts.filter((impact) => impact.hardGateCandidate).length,
-        humanReviewRequired: hypothesisImpacts.filter((impact) => impact.requiresHumanReview).length,
-        proposedDraDelta: hypothesisImpacts.reduce((sum, impact) => sum + impact.proposedDraDelta, 0),
-        proposedRdiaDelta: hypothesisImpacts.reduce((sum, impact) => sum + impact.proposedRdiaDelta, 0),
-      },
-      sources: results.map((result) => ({ source: result.source, fetched: result.fetched, normalized: result.normalized.length })),
-    });
+    const result = await runResearchPipeline(parsed.data);
+    return NextResponse.json(result);
   } catch (error) {
     const status = (error as Error & { status?: number }).status ?? 500;
     return NextResponse.json({ error: error instanceof Error ? error.message : "Evidence ingestion failed" }, { status });
