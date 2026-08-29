@@ -44,6 +44,10 @@ create table if not exists candidate_entity_links (
   unique (candidate_id, hypothesis_id, ontology_entity_id, role)
 );
 
+create unique index if not exists uq_candidate_entity_links_unversioned
+  on candidate_entity_links(candidate_id, ontology_entity_id, role)
+  where hypothesis_id is null;
+
 create table if not exists research_batch_runs (
   id uuid primary key default gen_random_uuid(),
   run_type text not null default 'EVIDENCE_INGESTION',
@@ -85,7 +89,6 @@ create index if not exists idx_candidate_entity_links on candidate_entity_links(
 create index if not exists idx_batch_tasks_claim on research_batch_tasks(status, available_at, priority, created_at);
 create index if not exists idx_batch_tasks_run on research_batch_tasks(batch_run_id, status);
 
--- Atomically claim work. SKIP LOCKED permits multiple workers without duplicate processing.
 create or replace function claim_research_batch_tasks(p_worker_id text, p_limit integer default 5, p_lease_minutes integer default 10)
 returns setof research_batch_tasks
 language plpgsql
