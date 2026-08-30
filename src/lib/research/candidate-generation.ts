@@ -12,10 +12,8 @@ function normalize(value?: string | null) { return value ? normalizedCandidateKe
 function isDrug(type?: string | null) { const t = type?.toUpperCase(); return t === "CHEMICAL" || t === "DRUG"; }
 function isGene(type?: string | null) { return type?.toUpperCase() === "GENE"; }
 function clamp(value: number) { return Math.max(0, Math.min(100, Math.round(value * 10) / 10)); }
-function signature(drug: string, relation: string, gene?: string | null) {
-  const base = `${normalizedCandidateKey(drug)}|${relation.toUpperCase()}`;
-  return relation.toUpperCase() === "INFERRED_COOCCURRENCE" ? base : `${base}|${gene?.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim() ?? ""}`;
-}
+function normalizedGene(value?: string | null) { return value?.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim() ?? ""; }
+function signature(drug: string, relation: string, gene?: string | null) { return `${normalizedCandidateKey(drug)}|${relation.toUpperCase()}|${normalizedGene(gene)}`; }
 
 export async function generateCandidateHypotheses(diseaseName: string) {
   const diseases = await researchDb<{ id: string }[]>(`research_diseases?canonical_name=eq.${encodeURIComponent(diseaseName)}&select=id`); const diseaseId = diseases[0]?.id;
@@ -37,9 +35,7 @@ export async function generateCandidateHypotheses(diseaseName: string) {
     else if (isDrug(relation.entity2_type)) { drugName = relation.entity2_text ?? undefined; drugId = relation.entity2_id ?? undefined; if (isGene(relation.entity1_type)) { geneName = relation.entity1_text ?? undefined; geneId = relation.entity1_id ?? undefined; } }
     if (!drugName || normalize(drugName).length < 2) continue;
     drugName = normalizeCandidateName(drugName);
-    const key = signature(drugName, relationType, geneName);
-    const group = grouped.get(key) ?? { drugName, drugId, geneName, geneId, relationType, evidenceIds: new Set<string>(), qualities: [] };
-    if (!group.geneName && geneName) { group.geneName = geneName; group.geneId = geneId; }
+    const key = signature(drugName, relationType, geneName); const group = grouped.get(key) ?? { drugName, drugId, geneName, geneId, relationType, evidenceIds: new Set<string>(), qualities: [] };
     group.evidenceIds.add(relation.evidence_id); const quality = qualityByEvidence.get(relation.evidence_id); if (quality !== undefined) group.qualities.push(quality); grouped.set(key, group);
   }
   const candidates: GeneratedCandidate[] = [...grouped.values()].map((group) => {
@@ -50,6 +46,11 @@ export async function generateCandidateHypotheses(diseaseName: string) {
     return { drugName: group.drugName, drugNormalizedId: group.drugId, geneName: group.geneName, geneNormalizedId: group.geneId, relationType: group.relationType, evidenceIds:[...group.evidenceIds], evidenceCount, meanEvidenceQuality:clamp(meanEvidenceQuality), maxEvidenceQuality:clamp(maxEvidenceQuality), confidence, noveltyScore, generationScore, hypothesisSummary: inferred ? `${group.drugName} co-occurs with ${diseaseName}${group.geneName ? ` and ${group.geneName}` : ""} across ${evidenceCount} evidence record${evidenceCount === 1 ? "" : "s"}. This is a discovery signal only; no causal or treatment relationship is asserted.` : `${group.drugName} has a ${group.relationType} evidence signal in ${diseaseName}${group.geneName ? ` involving ${group.geneName}` : ""}. This is a machine-generated research hypothesis requiring scientific review.` };
   }).filter((candidate) => candidate.relationType === "INFERRED_COOCCURRENCE" ? candidate.evidenceCount >= 2 && candidate.generationScore >= 50 : candidate.generationScore >= 45).sort((a,b)=>b.generationScore-a.generationScore).slice(0,100);
   const existingBySignature = new Map(existingGenerated.map((row)=>[signature(row.drug_name,row.relation_type,row.gene_name),row.id]));
-  for (const candidate of candidates) { const row = { disease_id:diseaseId, drug_name:candidate.drugName, drug_normalized_id:candidate.drugNormalizedId ?? null, gene_name:candidate.geneName ?? null, gene_normalized_id:candidate.geneNormalizedId ?? null, relation_type:candidate.relationType, hypothesis_summary:candidate.hypothesisSummary, support_evidence_ids:candidate.evidenceIds, evidence_count:candidate.evidenceCount, mean_evidence_quality:candidate.meanEvidenceQuality, max_evidence_quality:candidate.maxEvidenceQuality, confidence:candidate.confidence, novelty_score:candidate.noveltyScore, generation_score:candidate.generationScore, updated_at:new Date().toISOString() }; const id=existingBySignature.get(signature(candidate.drugName,candidate.relationType,candidate.geneName)); if(id) await researchDb<unknown>(`generated_candidate_hypotheses?id=eq.${id}`,{method:"PATCH",body:row,prefer:"return=minimal"}); else await researchDb<unknown>("generated_candidate_hypotheses",{method:"POST",body:row,prefer:"return=minimal"}); }
+  for (const candidate of candidates) {
+    const row = { disease_id:diseaseId, drug_name:candidate.drugName, drug_normalized_id:candidate.drugNormalizedId ?? null, gene_name:candidate.geneName ?? null, gene_normalized_id:candidate.geneNormalizedId ?? null, relation_type:candidate.relationType, hypothesis_summary:candidate.hypothesisSummary, support_evidence_ids:candidate.evidenceIds, evidence_count:candidate.evidenceCount, mean_evidence_quality:candidate.meanEvidenceQuality, max_evidence_quality:candidate.maxEvidenceQuality, confidence:candidate.confidence, novelty_score:candidate.noveltyScore, generation_score:candidate.generationScore, updated_at:new Date().toISOString() };
+    const id=existingBySignature.get(signature(candidate.drugName,candidate.relationType,candidate.geneName));
+    if(id) await researchDb<unknown>(`generated_candidate_hypotheses?id=eq.${id}`,{method:"PATCH",body:row,prefer:"return=minimal"});
+    else await researchDb<unknown>("generated_candidate_hypotheses",{method:"POST",body:row,prefer:"return=minimal"});
+  }
   return { generated:candidates.length, candidates };
 }
