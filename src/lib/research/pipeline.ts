@@ -1,4 +1,5 @@
 import { generateCandidateHypotheses } from "./candidate-generation";
+import { rankGeneratedCandidatesV2 } from "./candidate-ranking-v2";
 import { detectMaterialChanges } from "./change-detection";
 import { scoreEvidenceQuality } from "./evidence-quality";
 import { detectHypothesisImpacts } from "./hypothesis-change";
@@ -25,6 +26,7 @@ export type ResearchPipelineInput = {
   includeOntologyResolution?: boolean;
   includeEvidenceQuality?: boolean;
   includeCandidateGeneration?: boolean;
+  includeCandidateRankingV2?: boolean;
 };
 
 export async function runResearchPipeline(input: ResearchPipelineInput) {
@@ -36,6 +38,7 @@ export async function runResearchPipeline(input: ResearchPipelineInput) {
   const includeOntologyResolution = input.includeOntologyResolution ?? true;
   const includeEvidenceQuality = input.includeEvidenceQuality ?? true;
   const includeCandidateGeneration = input.includeCandidateGeneration ?? true;
+  const includeCandidateRankingV2 = input.includeCandidateRankingV2 ?? true;
 
   const results = await Promise.all(
     sources.map((source) =>
@@ -80,6 +83,10 @@ export async function runResearchPipeline(input: ResearchPipelineInput) {
     ? await generateCandidateHypotheses(diseaseName)
     : { generated: 0, candidates: [] };
 
+  const candidateRankingV2 = includeCandidateRankingV2 && includeCandidateGeneration
+    ? await rankGeneratedCandidatesV2(diseaseName)
+    : { ranked: 0, fastTrack: 0, review: 0 };
+
   return {
     diseaseName,
     fetched: results.reduce((sum, result) => sum + result.fetched, 0),
@@ -93,10 +100,7 @@ export async function runResearchPipeline(input: ResearchPipelineInput) {
       entitiesPersisted: pubtatorPersistence.entities,
       relationsPersisted: pubtatorPersistence.relations,
     },
-    ontology: {
-      enabled: includeOntologyResolution,
-      ...ontology,
-    },
+    ontology: { enabled: includeOntologyResolution, ...ontology },
     evidenceQuality: {
       enabled: includeEvidenceQuality,
       scored: evidenceQuality.scored,
@@ -131,6 +135,13 @@ export async function runResearchPipeline(input: ResearchPipelineInput) {
       generated: generatedCandidates.generated,
       reviewReady: generatedCandidates.candidates.filter((candidate) => candidate.generationScore >= 70).length,
       topScore: generatedCandidates.candidates[0]?.generationScore ?? 0,
+    },
+    candidateRankingV2: {
+      enabled: includeCandidateRankingV2,
+      ranked: candidateRankingV2.ranked,
+      fastTrackDra: candidateRankingV2.fastTrack,
+      draReview: candidateRankingV2.review,
+      version: "CRN-2.0",
     },
     sources: results.map((result) => ({ source: result.source, fetched: result.fetched, normalized: result.normalized.length })),
   };
