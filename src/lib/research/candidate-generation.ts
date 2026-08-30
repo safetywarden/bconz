@@ -1,18 +1,21 @@
+import { normalizeCandidateName, normalizedCandidateKey } from "./candidate-eligibility";
 import { researchDb } from "./supabase-rest";
 
 const supportedRelations = new Set(["TREAT", "PREVENT", "INHIBIT", "STIMULATE", "POSITIVE_CORRELATE", "ASSOCIATE", "INFERRED_COOCCURRENCE"]);
-
 type EvidenceRow = { id: string; title: string; source_id: string | null };
 type RelationRow = { evidence_id: string; relation_type: string; entity1_type: string | null; entity1_id: string | null; entity1_text: string | null; entity2_type: string | null; entity2_id: string | null; entity2_text: string | null; source?: string | null };
 type QualityRow = { evidence_id: string; composite_score: number };
 type ExistingCandidate = { drug_name: string };
 type ExistingGenerated = { id: string; drug_name: string; gene_name: string | null; relation_type: string };
 export type GeneratedCandidate = { drugName: string; drugNormalizedId?: string; geneName?: string; geneNormalizedId?: string; relationType: string; evidenceIds: string[]; evidenceCount: number; meanEvidenceQuality: number; maxEvidenceQuality: number; confidence: number; noveltyScore: number; generationScore: number; hypothesisSummary: string; };
-function normalize(value?: string | null) { return value?.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim() ?? ""; }
+function normalize(value?: string | null) { return value ? normalizedCandidateKey(value) : ""; }
 function isDrug(type?: string | null) { const t = type?.toUpperCase(); return t === "CHEMICAL" || t === "DRUG"; }
 function isGene(type?: string | null) { return type?.toUpperCase() === "GENE"; }
 function clamp(value: number) { return Math.max(0, Math.min(100, Math.round(value * 10) / 10)); }
-function signature(drug: string, relation: string, gene?: string | null) { return `${normalize(drug)}|${relation.toUpperCase()}|${normalize(gene)}`; }
+function signature(drug: string, relation: string, gene?: string | null) {
+  const base = `${normalizedCandidateKey(drug)}|${relation.toUpperCase()}`;
+  return relation.toUpperCase() === "INFERRED_COOCCURRENCE" ? base : `${base}|${gene?.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim() ?? ""}`;
+}
 
 export async function generateCandidateHypotheses(diseaseName: string) {
   const diseases = await researchDb<{ id: string }[]>(`research_diseases?canonical_name=eq.${encodeURIComponent(diseaseName)}&select=id`); const diseaseId = diseases[0]?.id;
@@ -33,7 +36,10 @@ export async function generateCandidateHypotheses(diseaseName: string) {
     if (isDrug(relation.entity1_type)) { drugName = relation.entity1_text ?? undefined; drugId = relation.entity1_id ?? undefined; if (isGene(relation.entity2_type)) { geneName = relation.entity2_text ?? undefined; geneId = relation.entity2_id ?? undefined; } }
     else if (isDrug(relation.entity2_type)) { drugName = relation.entity2_text ?? undefined; drugId = relation.entity2_id ?? undefined; if (isGene(relation.entity1_type)) { geneName = relation.entity1_text ?? undefined; geneId = relation.entity1_id ?? undefined; } }
     if (!drugName || normalize(drugName).length < 2) continue;
-    const key = signature(drugName, relationType, geneName); const group = grouped.get(key) ?? { drugName, drugId, geneName, geneId, relationType, evidenceIds: new Set<string>(), qualities: [] };
+    drugName = normalizeCandidateName(drugName);
+    const key = signature(drugName, relationType, geneName);
+    const group = grouped.get(key) ?? { drugName, drugId, geneName, geneId, relationType, evidenceIds: new Set<string>(), qualities: [] };
+    if (!group.geneName && geneName) { group.geneName = geneName; group.geneId = geneId; }
     group.evidenceIds.add(relation.evidence_id); const quality = qualityByEvidence.get(relation.evidence_id); if (quality !== undefined) group.qualities.push(quality); grouped.set(key, group);
   }
   const candidates: GeneratedCandidate[] = [...grouped.values()].map((group) => {
