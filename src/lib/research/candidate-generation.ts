@@ -45,10 +45,27 @@ export async function generateCandidateHypotheses(diseaseName: string) {
     const evidenceBreadth = clamp(35 + Math.min(evidenceCount,5)*12); const confidence = clamp(meanEvidenceQuality*0.55 + relationStrength*0.30 + evidenceBreadth*0.15); const generationScore = clamp(meanEvidenceQuality*0.40 + noveltyScore*0.25 + relationStrength*0.20 + evidenceBreadth*0.15);
     return { drugName: group.drugName, drugNormalizedId: group.drugId, geneName: group.geneName, geneNormalizedId: group.geneId, relationType: group.relationType, evidenceIds:[...group.evidenceIds], evidenceCount, meanEvidenceQuality:clamp(meanEvidenceQuality), maxEvidenceQuality:clamp(maxEvidenceQuality), confidence, noveltyScore, generationScore, hypothesisSummary: inferred ? `${group.drugName} co-occurs with ${diseaseName}${group.geneName ? ` and ${group.geneName}` : ""} across ${evidenceCount} evidence record${evidenceCount === 1 ? "" : "s"}. This is a discovery signal only; no causal or treatment relationship is asserted.` : `${group.drugName} has a ${group.relationType} evidence signal in ${diseaseName}${group.geneName ? ` involving ${group.geneName}` : ""}. This is a machine-generated research hypothesis requiring scientific review.` };
   }).filter((candidate) => candidate.relationType === "INFERRED_COOCCURRENCE" ? candidate.evidenceCount >= 2 && candidate.generationScore >= 50 : candidate.generationScore >= 45).sort((a,b)=>b.generationScore-a.generationScore).slice(0,100);
-  const existingBySignature = new Map(existingGenerated.map((row)=>[signature(row.drug_name,row.relation_type,row.gene_name),row.id]));
+
+  const existingGroups = new Map<string, ExistingGenerated[]>();
+  for (const row of existingGenerated) {
+    const key = signature(row.drug_name, row.relation_type, row.gene_name);
+    const rows = existingGroups.get(key) ?? [];
+    rows.push(row);
+    existingGroups.set(key, rows);
+  }
+  const existingBySignature = new Map<string,string>();
+  for (const [key, rows] of existingGroups) {
+    const survivor = rows.find((row) => row.drug_name.toLowerCase() === normalizeCandidateName(row.drug_name).toLowerCase()) ?? rows[0];
+    existingBySignature.set(key, survivor.id);
+    for (const duplicate of rows) {
+      if (duplicate.id === survivor.id) continue;
+      await researchDb<unknown>(`generated_candidate_hypotheses?id=eq.${duplicate.id}`, { method:"PATCH", body:{ status:"SUPERSEDED", updated_at:new Date().toISOString() }, prefer:"return=minimal" });
+    }
+  }
+
   for (const candidate of candidates) {
     const row = { disease_id:diseaseId, drug_name:candidate.drugName, drug_normalized_id:candidate.drugNormalizedId ?? null, gene_name:candidate.geneName ?? null, gene_normalized_id:candidate.geneNormalizedId ?? null, relation_type:candidate.relationType, hypothesis_summary:candidate.hypothesisSummary, support_evidence_ids:candidate.evidenceIds, evidence_count:candidate.evidenceCount, mean_evidence_quality:candidate.meanEvidenceQuality, max_evidence_quality:candidate.maxEvidenceQuality, confidence:candidate.confidence, novelty_score:candidate.noveltyScore, generation_score:candidate.generationScore, updated_at:new Date().toISOString() };
-    const id=existingBySignature.get(signature(candidate.drugName,candidate.relationType,candidate.geneName));
+    const key = signature(candidate.drugName,candidate.relationType,candidate.geneName); const id=existingBySignature.get(key);
     if(id) await researchDb<unknown>(`generated_candidate_hypotheses?id=eq.${id}`,{method:"PATCH",body:row,prefer:"return=minimal"});
     else await researchDb<unknown>("generated_candidate_hypotheses",{method:"POST",body:row,prefer:"return=minimal"});
   }
