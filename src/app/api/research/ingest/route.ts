@@ -10,6 +10,8 @@ const requestSchema = z.object({
   includePubTator3: z.boolean().default(true),
   includeHypothesisDetection: z.boolean().default(true),
   includeOntologyResolution: z.boolean().default(true),
+  includeEvidenceQuality: z.boolean().default(true),
+  includeCandidateGeneration: z.boolean().default(true),
 });
 
 export async function POST(request: Request) {
