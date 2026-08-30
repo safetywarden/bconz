@@ -75,15 +75,15 @@ export async function persistPubTatorExtraction(diseaseName: string, extraction:
 
   const entityRows = extraction.entities.flatMap((entity) => {
     const evidenceId = evidenceBySourceId.get(entity.evidenceSourceId);
-    return evidenceId ? [{ evidence_id: evidenceId, entity_type: entity.entityType, normalized_id: entity.normalizedId ?? null, text: entity.text, source: "PUBTATOR3" }] : [];
+    return evidenceId ? [{ evidence_id: evidenceId, entity_type: entity.entityType, normalized_id: entity.normalizedId ?? "", text: entity.text, source: "PUBTATOR3" }] : [];
   });
   const relationRows = extraction.relations.flatMap((relation) => {
     const evidenceId = evidenceBySourceId.get(relation.evidenceSourceId);
-    return evidenceId ? [{ evidence_id: evidenceId, relation_type: relation.relationType, entity1_type: relation.entity1Type ?? null, entity1_id: relation.entity1Id ?? null, entity1_text: relation.entity1Text ?? null, entity2_type: relation.entity2Type ?? null, entity2_id: relation.entity2Id ?? null, entity2_text: relation.entity2Text ?? null, source: "PUBTATOR3" }] : [];
+    return evidenceId ? [{ evidence_id: evidenceId, relation_type: relation.relationType, entity1_type: relation.entity1Type ?? null, entity1_id: relation.entity1Id ?? "", entity1_text: relation.entity1Text ?? "", entity2_type: relation.entity2Type ?? null, entity2_id: relation.entity2Id ?? "", entity2_text: relation.entity2Text ?? "", source: "PUBTATOR3" }] : [];
   });
 
   if (entityRows.length > 0) await researchDb<unknown>("research_evidence_entities?on_conflict=evidence_id,entity_type,normalized_id,text", { method: "POST", body: entityRows, prefer: "resolution=merge-duplicates,return=minimal" });
-  if (relationRows.length > 0) await researchDb<unknown>("research_evidence_relations?on_conflict=evidence_id,relation_type,entity1_id,entity2_id", { method: "POST", body: relationRows, prefer: "resolution=merge-duplicates,return=minimal" });
+  if (relationRows.length > 0) await researchDb<unknown>("research_evidence_relations?on_conflict=evidence_id,relation_type,entity1_id,entity1_text,entity2_id,entity2_text", { method: "POST", body: relationRows, prefer: "resolution=merge-duplicates,return=minimal" });
   return { entities: entityRows.length, relations: relationRows.length };
 }
 
