@@ -12,22 +12,36 @@ const normalize = (v?:string|null) => v ? normalizedCandidateKey(v) : "";
 const clamp = (v:number) => Math.max(0, Math.min(100, Math.round(v*10)/10));
 const isDrug = (t?:string|null) => ["CHEMICAL","DRUG"].includes(t?.toUpperCase() ?? "");
 const keyFor = (name:string,id?:string|null) => id ? `ID:${id}` : `NAME:${normalize(name)}`;
+const identityKey = (c:GeneratedRow) => `${c.disease_id}|${normalize(c.drug_name)}|${c.relation_type.toUpperCase()}`;
 function relationDrug(r:RelationRow){ if(isDrug(r.entity1_type)) return {name:r.entity1_text??"",id:r.entity1_id}; if(isDrug(r.entity2_type)) return {name:r.entity2_text??"",id:r.entity2_id}; }
-function exposureScore(evidence:EvidenceRow[], drugName:string, facts:LandscapeFact[]){ const drug=normalize(drugName); let score=20; const hits=evidence.filter(e=>normalize(e.title).includes(drug)); if(hits.length) score=30; for(const e of hits){ if(e.evidence_class==="E1") score+=25; else if(["E2","E3"].includes(e.evidence_class)) score+=15; else if(["E4","E5"].includes(e.evidence_class)) score+=8; if(/phase\s*(3|iii)|randomi[sz]ed|approved|safety|pharmacokinetic|\bpk\b|dose/i.test(e.title)) score+=8; } for(const f of facts) if(["HUMAN_EXPOSURE","APPROVAL","KNOWN_INDICATION","APPROVED_INDICATION"].includes(f.fact_type)) score += 10*(Number(f.confidence)/100); return clamp(score); }
+function exposureScore(evidence:EvidenceRow[], drugName:string, facts:LandscapeFact[]){ const drug=normalize(drugName); let score=20; const hits=evidence.filter(e=>drug && normalize(e.title).includes(drug)); if(hits.length) score=30; for(const e of hits){ if(e.evidence_class==="E1") score+=25; else if(["E2","E3"].includes(e.evidence_class)) score+=15; else if(["E4","E5"].includes(e.evidence_class)) score+=8; if(/phase\s*(3|iii)|randomi[sz]ed|approved|safety|pharmacokinetic|\bpk\b|dose/i.test(e.title)) score+=8; } for(const f of facts) if(["HUMAN_EXPOSURE","APPROVAL","KNOWN_INDICATION","APPROVED_INDICATION"].includes(f.fact_type)) score += 10*(Number(f.confidence)/100); return clamp(score); }
 function landscapePenalty(facts:LandscapeFact[]){ let competition=0, negative=0; for(const f of facts){ const w=Number(f.confidence)/100; if(f.fact_type==="KNOWN_INDICATION") competition+=25*w; if(["APPROVAL","APPROVED_INDICATION"].includes(f.fact_type)) competition+=30*w; if(f.fact_type==="ACTIVE_TRIAL") competition+=18*w; if(f.fact_type==="COMPETITOR_ASSET") competition+=25*w; if(f.fact_type==="IP_CONSTRAINT") competition+=30*w; if(f.fact_type==="NEGATIVE_TRIAL") negative+=45*w; if(f.fact_type==="SAFETY_SIGNAL") negative+=35*w; } return {competition:clamp(competition),negative:clamp(negative)}; }
 function route(score:number,negative:number,competition:number){ if(negative>=60)return "DEPRIORITIZE" as const; if(score>=75&&competition<45)return "FAST_TRACK_DRA" as const; if(score>=60)return "DRA_REVIEW" as const; if(score>=45)return "HOLD" as const; return "DEPRIORITIZE" as const; }
+
+async function deduplicateGenerated(rows:GeneratedRow[]) {
+  const best = new Map<string,GeneratedRow>(); const duplicates: GeneratedRow[] = [];
+  for (const row of rows) {
+    const key=identityKey(row); const current=best.get(key);
+    if (!current) { best.set(key,row); continue; }
+    const rowStrength=Number(row.evidence_count)*100+Number(row.confidence); const currentStrength=Number(current.evidence_count)*100+Number(current.confidence);
+    if (rowStrength>currentStrength) { duplicates.push(current); best.set(key,row); } else duplicates.push(row);
+  }
+  for (const duplicate of duplicates) await researchDb<unknown>(`generated_candidate_hypotheses?id=eq.${duplicate.id}`,{method:"PATCH",prefer:"return=minimal",body:{status:"SUPERSEDED",routing_decision:"DEPRIORITIZE",ranking_version:"CRN-2.1",updated_at:new Date().toISOString()}});
+  return [...best.values()];
+}
 
 export async function rankGeneratedCandidatesV2(diseaseName?:string){
   const filter=diseaseName?`&canonical_name=eq.${encodeURIComponent(diseaseName)}`:"";
   const diseases=await researchDb<Array<{id:string;canonical_name:string}>>(`research_diseases?select=id,canonical_name${filter}`); const diseaseIds=diseases.map(d=>d.id); if(!diseaseIds.length)return {ranked:0,fastTrack:0,review:0};
   const inDiseases=`(${diseaseIds.join(",")})`;
-  const [generated,evidence,existing,facts]=await Promise.all([
+  const [generatedRaw,evidence,existing,facts]=await Promise.all([
     researchDb<GeneratedRow[]>(`generated_candidate_hypotheses?disease_id=in.${inDiseases}&status=in.(PROPOSED,REVIEW)&select=id,disease_id,drug_name,drug_normalized_id,relation_type,evidence_count,mean_evidence_quality,confidence,novelty_score`),
     researchDb<EvidenceRow[]>(`research_evidence?disease_id=in.${inDiseases}&select=id,disease_id,title,evidence_class`),
     researchDb<ExistingCandidate[]>(`repurposing_candidates?select=disease_id,drug_name`),
     researchDb<LandscapeFact[]>(`candidate_landscape_facts?select=disease_id,drug_name,drug_normalized_id,fact_type,confidence`),
   ]);
-  if(!generated.length)return {ranked:0,fastTrack:0,review:0};
+  if(!generatedRaw.length)return {ranked:0,fastTrack:0,review:0};
+  const generated=await deduplicateGenerated(generatedRaw);
   const evidenceIds=evidence.map(e=>e.id); const relations=evidenceIds.length?await researchDb<RelationRow[]>(`research_evidence_relations?evidence_id=in.(${evidenceIds.join(",")})&select=evidence_id,relation_type,entity1_type,entity1_id,entity1_text,entity2_type,entity2_id,entity2_text`):[];
   const evidenceById=new Map(evidence.map(e=>[e.id,e])); const existingPairs=new Set(existing.map(c=>`${c.disease_id}|${normalize(c.drug_name)}`));
   const factsByDrug=new Map<string,LandscapeFact[]>(); for(const f of facts){ const k=keyFor(f.drug_name,f.drug_normalized_id); const a=factsByDrug.get(k)??[]; a.push(f); factsByDrug.set(k,a); }
