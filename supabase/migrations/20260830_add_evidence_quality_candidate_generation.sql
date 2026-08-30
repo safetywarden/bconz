@@ -39,10 +39,11 @@ create table if not exists generated_candidate_hypotheses (
   reviewed_by text,
   reviewed_at timestamptz,
   created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-  unique (disease_id, drug_name, relation_type, coalesce(gene_name, ''))
+  updated_at timestamptz not null default now()
 );
 
 create index if not exists idx_evidence_quality_score on evidence_quality_scores(composite_score desc);
 create index if not exists idx_generated_candidates_disease on generated_candidate_hypotheses(disease_id, generation_score desc);
 create index if not exists idx_generated_candidates_status on generated_candidate_hypotheses(status, generation_score desc);
+create unique index if not exists uq_generated_candidate_signature
+  on generated_candidate_hypotheses(disease_id, lower(drug_name), relation_type, lower(coalesce(gene_name, '')));
