@@ -12,6 +12,7 @@ const requestSchema = z.object({
   includeOntologyResolution: z.boolean().default(true),
   includeEvidenceQuality: z.boolean().default(true),
   includeCandidateGeneration: z.boolean().default(true),
+  includeCandidateRankingV2: z.boolean().default(true),
 });
 
 export async function POST(request: Request) {
