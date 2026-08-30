@@ -29,6 +29,14 @@ export async function PATCH(request:Request){
     assertResearchApiToken(request); const parsed=reviewSchema.safeParse(await request.json()); if(!parsed.success)return NextResponse.json({error:"Invalid request",details:parsed.error.flatten()},{status:400});
     const {id,action,reviewedBy}=parsed.data; const generatedRows=await researchDb<GeneratedRow[]>(`generated_candidate_hypotheses?id=eq.${id}&select=${selectFields}`); const generated=generatedRows[0]; if(!generated)return NextResponse.json({error:"Generated candidate not found"},{status:404});
     if(action!=="PROMOTE"){const nextStatus=action==="REVIEW"?"REVIEW":action==="REJECT"?"REJECTED":"SUPERSEDED"; await researchDb<unknown>(`generated_candidate_hypotheses?id=eq.${id}`,{method:"PATCH",prefer:"return=minimal",body:{status:nextStatus,reviewed_by:reviewedBy,reviewed_at:new Date().toISOString(),updated_at:new Date().toISOString()}}); return NextResponse.json({ok:true,id,status:nextStatus});}
+
+    if(generated.ranking_version === "CRN-2.1" && !["FAST_TRACK_DRA","DRA_REVIEW"].includes(generated.routing_decision)) {
+      return NextResponse.json({
+        error:"CRN-2.1 eligibility gate blocks promotion",
+        details:`${generated.drug_name} is routed ${generated.routing_decision}. Resolve candidate identity/eligibility and rerank before promotion to the DRA registry.`,
+      },{status:409});
+    }
+
     const diseases=await researchDb<DiseaseRow[]>(`research_diseases?id=eq.${generated.disease_id}&select=id,canonical_name`); const disease=diseases[0]; if(!disease)return NextResponse.json({error:"Disease record not found"},{status:409});
     let candidates=await researchDb<CandidateRow[]>(`repurposing_candidates?disease_id=eq.${generated.disease_id}&drug_name=ilike.${encodeURIComponent(generated.drug_name)}&select=id,disease_id,drug_name&limit=1`);
     if(candidates.length===0){candidates=await researchDb<CandidateRow[]>("repurposing_candidates",{method:"POST",prefer:"return=representation",body:{disease_id:generated.disease_id,drug_name:generated.drug_name,responder_hypothesis:generated.hypothesis_summary,decision:"INVESTIGATE",evidence_confidence:generated.confidence,decisive_next_gate:"Human scientific review and full DRA scoring required before advancement."}});}
