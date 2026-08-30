@@ -1,4 +1,6 @@
+import { generateCandidateHypotheses } from "./candidate-generation";
 import { detectMaterialChanges } from "./change-detection";
+import { scoreEvidenceQuality } from "./evidence-quality";
 import { detectHypothesisImpacts } from "./hypothesis-change";
 import { loadCandidateHypotheses } from "./hypothesis-registry";
 import { ingestPubmedDisease } from "./ingestion/pubmed";
@@ -21,6 +23,8 @@ export type ResearchPipelineInput = {
   includePubTator3?: boolean;
   includeHypothesisDetection?: boolean;
   includeOntologyResolution?: boolean;
+  includeEvidenceQuality?: boolean;
+  includeCandidateGeneration?: boolean;
 };
 
 export async function runResearchPipeline(input: ResearchPipelineInput) {
@@ -30,6 +34,8 @@ export async function runResearchPipeline(input: ResearchPipelineInput) {
   const includePubTator3 = input.includePubTator3 ?? true;
   const includeHypothesisDetection = input.includeHypothesisDetection ?? true;
   const includeOntologyResolution = input.includeOntologyResolution ?? true;
+  const includeEvidenceQuality = input.includeEvidenceQuality ?? true;
+  const includeCandidateGeneration = input.includeCandidateGeneration ?? true;
 
   const results = await Promise.all(
     sources.map((source) =>
@@ -53,6 +59,10 @@ export async function runResearchPipeline(input: ResearchPipelineInput) {
     ? await resolveEvidenceEntities(diseaseName)
     : { examined: 0, resolved: 0, externalId: 0, alias: 0 };
 
+  const evidenceQuality = includeEvidenceQuality
+    ? await scoreEvidenceQuality(diseaseName)
+    : { scored: 0, scores: [] };
+
   const changes = detectMaterialChanges(normalized, pubtator);
   const changePersistence = await persistMaterialChanges(diseaseName, changes);
 
@@ -65,6 +75,10 @@ export async function runResearchPipeline(input: ResearchPipelineInput) {
   const hypothesisPersistence = includeHypothesisDetection
     ? await persistHypothesisImpacts(diseaseName, hypothesisImpacts)
     : { logged: 0 };
+
+  const generatedCandidates = includeCandidateGeneration && includePubTator3
+    ? await generateCandidateHypotheses(diseaseName)
+    : { generated: 0, candidates: [] };
 
   return {
     diseaseName,
@@ -82,6 +96,14 @@ export async function runResearchPipeline(input: ResearchPipelineInput) {
     ontology: {
       enabled: includeOntologyResolution,
       ...ontology,
+    },
+    evidenceQuality: {
+      enabled: includeEvidenceQuality,
+      scored: evidenceQuality.scored,
+      meanComposite: evidenceQuality.scores.length
+        ? Math.round((evidenceQuality.scores.reduce((sum, score) => sum + score.compositeScore, 0) / evidenceQuality.scores.length) * 10) / 10
+        : 0,
+      highQuality: evidenceQuality.scores.filter((score) => score.compositeScore >= 75).length,
     },
     materialChanges: {
       logged: changePersistence.logged,
@@ -103,6 +125,12 @@ export async function runResearchPipeline(input: ResearchPipelineInput) {
       humanReviewRequired: hypothesisImpacts.filter((impact) => impact.requiresHumanReview).length,
       proposedDraDelta: hypothesisImpacts.reduce((sum, impact) => sum + impact.proposedDraDelta, 0),
       proposedRdiaDelta: hypothesisImpacts.reduce((sum, impact) => sum + impact.proposedRdiaDelta, 0),
+    },
+    candidateGeneration: {
+      enabled: includeCandidateGeneration,
+      generated: generatedCandidates.generated,
+      reviewReady: generatedCandidates.candidates.filter((candidate) => candidate.generationScore >= 70).length,
+      topScore: generatedCandidates.candidates[0]?.generationScore ?? 0,
     },
     sources: results.map((result) => ({ source: result.source, fetched: result.fetched, normalized: result.normalized.length })),
   };
