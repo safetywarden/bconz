@@ -28,10 +28,19 @@ export async function researchDb<T>(
     cache: "no-store",
   });
 
+  const text = await response.text();
+
   if (!response.ok) {
-    throw new Error(`Research database request failed (${response.status}): ${await response.text()}`);
+    throw new Error(`Research database request failed (${response.status}): ${text}`);
   }
 
-  if (response.status === 204) return undefined as T;
-  return (await response.json()) as T;
+  // PostgREST frequently returns an empty body for successful writes when
+  // Prefer: return=minimal is used. Do not attempt JSON.parse on empty content.
+  if (!text.trim()) return undefined as T;
+
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    throw new Error(`Research database returned invalid JSON (${response.status})`);
+  }
 }
