@@ -24,7 +24,15 @@ export async function POST(request: Request) {
     }
 
     const result = await runResearchPipeline(parsed.data);
-    return NextResponse.json(result);
+    return NextResponse.json({
+      ...result,
+      candidateRanking: {
+        ranked: result.candidateRankingV2.ranked,
+        fastTrack: result.candidateRankingV2.fastTrackDra,
+        review: result.candidateRankingV2.draReview,
+        version: result.candidateRankingV2.version,
+      },
+    });
   } catch (error) {
     const status = (error as Error & { status?: number }).status ?? 500;
     return NextResponse.json({ error: error instanceof Error ? error.message : "Evidence ingestion failed" }, { status });
