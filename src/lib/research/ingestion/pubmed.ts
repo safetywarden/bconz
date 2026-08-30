@@ -4,6 +4,23 @@ type ESearchResponse = { esearchresult?: { idlist?: string[] } };
 type ESummaryItem = { uid?: string; title?: string; pubdate?: string; source?: string; sortfirstauthor?: string };
 type ESummaryResponse = { result?: Record<string, ESummaryItem | string[]> };
 
+const MONTHS: Record<string, string> = {
+  Jan: "01", Feb: "02", Mar: "03", Apr: "04", May: "05", Jun: "06",
+  Jul: "07", Aug: "08", Sep: "09", Oct: "10", Nov: "11", Dec: "12",
+};
+
+function normalizePubmedDate(pubdate?: string): string | undefined {
+  if (!pubdate) return undefined;
+  const match = pubdate.trim().match(/^(\d{4})(?:\s+([A-Z][a-z]{2}))?(?:\s+(\d{1,2}))?/);
+  if (!match) return undefined;
+  const [, year, monthText, dayText] = match;
+  if (!monthText) return `${year}-01-01`;
+  const month = MONTHS[monthText];
+  if (!month) return `${year}-01-01`;
+  const day = dayText ? dayText.padStart(2, "0") : "01";
+  return `${year}-${month}-${day}`;
+}
+
 function classifyPubmedEvidence(title: string): NormalizedEvidence["evidenceClass"] {
   const t = title.toLowerCase();
   if (t.includes("randomized") || t.includes("randomised") || t.includes("phase 3") || t.includes("phase iii")) return "E1";
@@ -32,14 +49,13 @@ export async function ingestPubmedDisease(diseaseName: string, limit = 20): Prom
     if (!item || Array.isArray(item) || typeof item !== "object") return [];
     const title = item.title?.trim();
     if (!title) return [];
-    const date = item.pubdate?.match(/\d{4}(?:\s+[A-Z][a-z]{2})?(?:\s+\d{1,2})?/)?.[0];
     return [{
       diseaseName,
       sourceType: "PUBMED" as const,
       sourceId: id,
       sourceUrl: `https://pubmed.ncbi.nlm.nih.gov/${id}/`,
       title,
-      publicationDate: date,
+      publicationDate: normalizePubmedDate(item.pubdate),
       population: undefined,
       extractedClaim: title,
       evidenceClass: classifyPubmedEvidence(title),
