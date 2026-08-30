@@ -12,6 +12,15 @@ type Study = {
 
 type CtgovResponse = { studies?: Study[] };
 
+function normalizeClinicalTrialsDate(value?: string): string | undefined {
+  if (!value) return undefined;
+  const date = value.trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(date)) return date;
+  if (/^\d{4}-\d{2}$/.test(date)) return `${date}-01`;
+  if (/^\d{4}$/.test(date)) return `${date}-01-01`;
+  return undefined;
+}
+
 function classifyTrial(study: Study): NormalizedEvidence["evidenceClass"] {
   const phases = study.protocolSection?.designModule?.phases ?? [];
   if (phases.some((phase) => phase.includes("PHASE3") || phase.includes("PHASE4"))) return "E1";
@@ -40,7 +49,7 @@ export async function ingestClinicalTrialsDisease(diseaseName: string, limit = 2
       sourceId: nctId,
       sourceUrl: `https://clinicaltrials.gov/study/${nctId}`,
       title,
-      publicationDate: protocol?.statusModule?.startDateStruct?.date,
+      publicationDate: normalizeClinicalTrialsDate(protocol?.statusModule?.startDateStruct?.date),
       population: conditions,
       extractedClaim: [status ? `Status: ${status}.` : "", summary ?? title].filter(Boolean).join(" "),
       evidenceClass: classifyTrial(study),
