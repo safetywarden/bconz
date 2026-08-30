@@ -32,7 +32,6 @@ export type PubTatorExtraction = {
   warnings: string[];
 };
 type JsonRecord = Record<string, unknown>;
-
 type ParsedBioC = { documents: unknown[]; parseFailures: number };
 
 function asRecord(value: unknown): JsonRecord | undefined {
@@ -57,7 +56,12 @@ function annotationEntity(annotation: JsonRecord, sourceId: string): PubTatorEnt
   const infons = asRecord(annotation.infons) ?? {};
   const text = firstString(annotation.text, infons.name, infons.identifier);
   if (!text) return undefined;
-  return { evidenceSourceId: sourceId, entityType: normalizeEntityType(firstString(infons.type, infons.biotype, annotation.type)), normalizedId: firstString(infons.identifier, infons.id, infons.database_id), text };
+  return {
+    evidenceSourceId: sourceId,
+    entityType: normalizeEntityType(firstString(infons.type, infons.biotype, annotation.type)),
+    normalizedId: firstString(infons.identifier, infons.id, infons.database_id),
+    text,
+  };
 }
 function resolveRelationNode(node: unknown, annotationById: Map<string, PubTatorEntity>) {
   const record = asRecord(node); if (!record) return {};
@@ -66,23 +70,49 @@ function resolveRelationNode(node: unknown, annotationById: Map<string, PubTator
   return { type: entity?.entityType ?? firstString(record.type), id: entity?.normalizedId ?? refid, text: entity?.text ?? firstString(record.text) };
 }
 
+function unwrapBioCDocuments(payload: unknown): unknown[] {
+  if (Array.isArray(payload)) return payload;
+  const record = asRecord(payload);
+  if (!record) return [];
+  for (const key of ["documents", "PubTator3", "pubtator3", "collection"]) {
+    const values = asArray(record[key]);
+    if (values.length) return values;
+  }
+  return record.passages ? [record] : [];
+}
+
 function parseBioCJsonText(text: string): ParsedBioC {
   const trimmed = text.trim();
   if (!trimmed) return { documents: [], parseFailures: 0 };
   try {
-    const payload = JSON.parse(trimmed) as unknown;
-    if (Array.isArray(payload)) return { documents: payload, parseFailures: 0 };
-    const record = asRecord(payload);
-    return { documents: asArray(record?.documents).length ? asArray(record?.documents) : record ? [record] : [], parseFailures: 0 };
+    return { documents: unwrapBioCDocuments(JSON.parse(trimmed) as unknown), parseFailures: 0 };
   } catch {
     let parseFailures = 0;
     const documents = trimmed.split(/\r?\n/).flatMap((line) => {
       const value = line.trim();
       if (!value) return [];
-      try { return [JSON.parse(value) as unknown]; } catch { parseFailures += 1; return []; }
+      try { return unwrapBioCDocuments(JSON.parse(value) as unknown); }
+      catch { parseFailures += 1; return []; }
     });
     return { documents, parseFailures };
   }
+}
+
+function getDocumentPmid(document: JsonRecord): string | undefined {
+  const infons = asRecord(document.infons) ?? {};
+  const compositeId = firstString(document._id);
+  const compositePmid = compositeId?.match(/^(\d+)(?:\||$)/)?.[1];
+  const passagePmid = asArray(document.passages)
+    .map((passage) => asRecord(asRecord(passage)?.infons))
+    .map((passageInfons) => firstString(passageInfons?.["article-id_pmid"], passageInfons?.pmid))
+    .find(Boolean);
+  return firstString(
+    infons["article-id_pmid"],
+    infons.pmid,
+    compositePmid,
+    passagePmid,
+    document.id,
+  );
 }
 
 export async function extractPubTator3(evidence: NormalizedEvidence[]): Promise<PubTatorExtraction> {
@@ -98,22 +128,28 @@ export async function extractPubTator3(evidence: NormalizedEvidence[]): Promise<
       const response = await fetch(url, { cache: "no-store", headers: { Accept: "application/json" } });
       if (!response.ok) { batchesFailed += 1; warnings.push(`PubTator3 batch failed with HTTP ${response.status}.`); continue; }
       batchesSucceeded += 1;
-      const parsed = parseBioCJsonText(await response.text()); parseFailures += parsed.parseFailures; documentsParsed += parsed.documents.length;
+      const parsed = parseBioCJsonText(await response.text());
+      parseFailures += parsed.parseFailures;
+      documentsParsed += parsed.documents.length;
       if (parsed.parseFailures) warnings.push(`PubTator3 returned ${parsed.parseFailures} unparseable BioCJSON record(s).`);
 
       for (const rawDocument of parsed.documents) {
         const document = asRecord(rawDocument); if (!document) continue;
-        const sourceId = firstString(document.id, asRecord(document.infons)?.pmid); if (!sourceId) continue;
+        const sourceId = getDocumentPmid(document); if (!sourceId) continue;
         const annotationById = new Map<string, PubTatorEntity>();
         for (const passageValue of asArray(document.passages)) {
           const passage = asRecord(passageValue); if (!passage) continue;
           for (const annotationValue of asArray(passage.annotations)) {
             const annotation = asRecord(annotationValue); if (!annotation) continue;
             const entity = annotationEntity(annotation, sourceId); if (!entity) continue;
-            entities.push(entity); const annotationId = firstString(annotation.id); if (annotationId) annotationById.set(annotationId, entity);
+            entities.push(entity);
+            const annotationId = firstString(annotation.id); if (annotationId) annotationById.set(annotationId, entity);
           }
         }
-        const relationValues = [...asArray(document.relations), ...asArray(document.passages).flatMap((passage) => asArray(asRecord(passage)?.relations))];
+        const relationValues = [
+          ...asArray(document.relations),
+          ...asArray(document.passages).flatMap((passage) => asArray(asRecord(passage)?.relations)),
+        ];
         for (const relationValue of relationValues) {
           const relation = asRecord(relationValue); if (!relation) continue;
           const infons = asRecord(relation.infons) ?? {}; const nodes = asArray(relation.nodes); if (nodes.length < 2) continue;
