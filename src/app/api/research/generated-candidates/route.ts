@@ -30,10 +30,10 @@ export async function PATCH(request:Request){
     const {id,action,reviewedBy}=parsed.data; const generatedRows=await researchDb<GeneratedRow[]>(`generated_candidate_hypotheses?id=eq.${id}&select=${selectFields}`); const generated=generatedRows[0]; if(!generated)return NextResponse.json({error:"Generated candidate not found"},{status:404});
     if(action!=="PROMOTE"){const nextStatus=action==="REVIEW"?"REVIEW":action==="REJECT"?"REJECTED":"SUPERSEDED"; await researchDb<unknown>(`generated_candidate_hypotheses?id=eq.${id}`,{method:"PATCH",prefer:"return=minimal",body:{status:nextStatus,reviewed_by:reviewedBy,reviewed_at:new Date().toISOString(),updated_at:new Date().toISOString()}}); return NextResponse.json({ok:true,id,status:nextStatus});}
 
-    if(generated.ranking_version === "CRN-2.1" && !["FAST_TRACK_DRA","DRA_REVIEW"].includes(generated.routing_decision)) {
+    if(generated.ranking_version.startsWith("CRN-2.") && !["FAST_TRACK_DRA","DRA_REVIEW"].includes(generated.routing_decision)) {
       return NextResponse.json({
-        error:"CRN-2.1 eligibility gate blocks promotion",
-        details:`${generated.drug_name} is routed ${generated.routing_decision}. Resolve candidate identity/eligibility and rerank before promotion to the DRA registry.`,
+        error:`${generated.ranking_version} governance gate blocks promotion`,
+        details:`${generated.drug_name} is routed ${generated.routing_decision}. Benchmark, hold, deprioritized, and non-drug candidates cannot enter the DRA registry.`,
       },{status:409});
     }
 
