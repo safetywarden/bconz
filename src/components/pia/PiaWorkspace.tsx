@@ -20,6 +20,40 @@ type ContactView = {
   website?: string | null;
 };
 
+type PciaPerson = {
+  person_key?: string;
+  person_name?: string;
+  role_title?: string | null;
+  organization_name?: string | null;
+  linkedin_url?: string | null;
+  professional_email?: string | null;
+  professional_phone?: string | null;
+  status?: string;
+  relevance_score?: number | string | null;
+  confidence?: number | string | null;
+  relevance_reason?: string | null;
+  source_urls?: string[];
+  metadata?: JsonRecord;
+  last_verified?: string | null;
+};
+
+type EngagementPathway = {
+  recommended_first_contact?: string | null;
+  recommended_sequence?: string[];
+  best_channel?: string | null;
+  rationale?: string | null;
+};
+
+type PciaProviderIntel = {
+  status?: string;
+  error?: string | null;
+  contact_details?: JsonRecord;
+  people?: PciaPerson[];
+  official_website?: string | null;
+  last_verified?: string | null;
+  updated_at?: string | null;
+};
+
 function value(...candidates: any[]) {
   return candidates.find((candidate) => candidate !== undefined && candidate !== null && candidate !== "");
 }
@@ -140,6 +174,46 @@ function contactView(row: JsonRecord): ContactView {
   };
 }
 
+function contactFromIntel(row: JsonRecord, intel: PciaProviderIntel | null): ContactView {
+  const base = contactView(row);
+  const details = intel?.contact_details || {};
+
+  return {
+    status: String(value(intel?.status, details?.enrichment_status, base.status)),
+    address: value(details?.address, base.address),
+    city: value(details?.city, base.city),
+    stateRegion: value(details?.state_region, details?.stateRegion, base.stateRegion),
+    country: value(details?.country, base.country),
+    postalCode: value(details?.postal_code, details?.postalCode, base.postalCode),
+    phone: value(details?.phone, base.phone),
+    email: value(details?.email, base.email),
+    contactPerson: value(details?.contact_person, details?.contactPerson, base.contactPerson),
+    roleDepartment: value(details?.role_department, details?.roleDepartment, base.roleDepartment),
+    contactSource: value(details?.contact_source, details?.contactSource, base.contactSource),
+    lastVerified: value(details?.last_verified, intel?.last_verified, base.lastVerified),
+    website: value(details?.website, intel?.official_website, base.website),
+  };
+}
+
+function numericScore(value: unknown, scale = 100) {
+  const parsed = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(parsed)) return null;
+  return parsed <= 1 && scale === 100 ? Math.round(parsed * 100) : Math.round(parsed);
+}
+
+function uniqueUrls(...values: unknown[]) {
+  const urls: string[] = [];
+  for (const value of values) {
+    const candidates = Array.isArray(value) ? value : typeof value === "string" ? [value] : [];
+    for (const candidate of candidates) {
+      if (typeof candidate === "string" && candidate.startsWith("http") && !urls.includes(candidate)) {
+        urls.push(candidate);
+      }
+    }
+  }
+  return urls;
+}
+
 function rankOf(row: JsonRecord, index: number) {
   return Number(value(row?.rank, row?.shortlist_rank, row?.shortlistRank, index + 1));
 }
@@ -176,6 +250,8 @@ export function PiaWorkspace() {
   const [loading, setLoading] = useState(true);
   const [busyProvider, setBusyProvider] = useState("");
   const [busyShortlist, setBusyShortlist] = useState(false);
+  const [providerIntel, setProviderIntel] = useState<PciaProviderIntel | null>(null);
+  const [providerIntelLoading, setProviderIntelLoading] = useState(false);
   const [error, setError] = useState("");
 
   const loadPilots = useCallback(async () => {
@@ -228,7 +304,59 @@ export function PiaWorkspace() {
     [universe, selectedProviderId],
   );
 
-  const contact = selectedRow ? contactView(selectedRow) : null;
+  const contact = selectedRow ? contactFromIntel(selectedRow, providerIntel) : null;
+  const people = useMemo(
+    () =>
+      (Array.isArray(providerIntel?.people) && providerIntel.people.length
+        ? providerIntel.people
+        : Array.isArray(providerIntel?.contact_details?.people_intelligence)
+          ? providerIntel?.contact_details?.people_intelligence
+          : []) as PciaPerson[],
+    [providerIntel],
+  );
+  const engagement = (providerIntel?.contact_details?.engagement_pathway || {}) as EngagementPathway;
+  const peopleStatus = String(
+    value(providerIntel?.contact_details?.people_status, people.length ? "CANDIDATES_FOUND" : "NOT_STARTED"),
+  );
+  const evidenceUrls = uniqueUrls(
+    contact?.contactSource,
+    ...people.map((person) => person.source_urls || []),
+  );
+
+  useEffect(() => {
+    if (!pilot?.id || !selectedProviderId) {
+      setProviderIntel(null);
+      return;
+    }
+
+    let cancelled = false;
+    setProviderIntelLoading(true);
+
+    const query = new URLSearchParams({
+      pilot_id: String(pilot.id),
+      provider_id: selectedProviderId,
+    });
+
+    fetch(`/api/pcia/provider?${query.toString()}`, { cache: "no-store" })
+      .then(async (response) => {
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload?.detail || "Unable to load PCIA provider intelligence");
+        if (!cancelled) setProviderIntel(payload);
+      })
+      .catch((cause) => {
+        if (!cancelled) {
+          setProviderIntel(null);
+          setError(cause instanceof Error ? cause.message : "Unable to load PCIA provider intelligence");
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setProviderIntelLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [pilot?.id, selectedProviderId]);
 
   async function enrichProvider() {
     if (!pilot?.id || !selectedProviderId) return;
@@ -242,10 +370,12 @@ export function PiaWorkspace() {
           pilot_id: pilot.id,
           provider_id: selectedProviderId,
           force: true,
+          people: true,
         }),
       });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload?.detail || payload?.error || "PCIA enrichment failed");
+      setProviderIntel(payload);
       await loadPilots();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "PCIA enrichment failed");
@@ -313,7 +443,7 @@ export function PiaWorkspace() {
         </div>
       </div>
 
-      <div className="mx-auto grid max-w-[1600px] gap-5 px-6 py-6 xl:grid-cols-[1fr_460px]">
+      <div className="mx-auto grid max-w-[1720px] gap-5 px-6 py-6 xl:grid-cols-[minmax(0,1fr)_620px]">
         <section className="min-w-0 space-y-5">
           {error ? (
             <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
@@ -444,24 +574,39 @@ export function PiaWorkspace() {
         </section>
 
         <aside className="xl:sticky xl:top-6 xl:self-start">
-          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <div className="max-h-[calc(100vh-3rem)] overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
             {selectedRow && contact ? (
               <>
                 <div className="border-b border-slate-200 px-5 py-5">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <div className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-700">PCIA contact intelligence</div>
+                      <div className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-700">
+                        PCIA people & engagement intelligence
+                      </div>
                       <h2 className="mt-1 text-xl font-semibold">{providerName(selectedRow)}</h2>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <StatusBadge status={contact.status} />
+                        <PeopleStatusBadge status={peopleStatus} />
+                        {people.length ? (
+                          <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-semibold text-slate-600">
+                            {people.length} people
+                          </span>
+                        ) : null}
+                      </div>
                     </div>
-                    <StatusBadge status={contact.status} />
                   </div>
+
                   <div className="mt-4 flex flex-wrap gap-2">
                     <button
                       onClick={() => void enrichProvider()}
                       disabled={busyProvider === selectedProviderId}
                       className="rounded-lg bg-blue-700 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-800 disabled:opacity-50"
                     >
-                      {busyProvider === selectedProviderId ? "PCIA enriching…" : contact.status === "NOT_STARTED" ? "Enrich with PCIA" : "Refresh PCIA"}
+                      {busyProvider === selectedProviderId
+                        ? "Deep PCIA running…"
+                        : contact.status === "NOT_STARTED"
+                          ? "Deep enrich with PCIA"
+                          : "Refresh deep PCIA"}
                     </button>
                     {contact.website ? (
                       <a
@@ -474,21 +619,90 @@ export function PiaWorkspace() {
                       </a>
                     ) : null}
                   </div>
+                  {providerIntelLoading ? (
+                    <div className="mt-3 text-xs text-slate-500">Loading full PCIA intelligence…</div>
+                  ) : null}
                 </div>
-                <div className="divide-y divide-slate-100">
-                  <ContactRow label="Address" value={contact.address} />
-                  <ContactRow label="City" value={contact.city} />
-                  <ContactRow label="State / region" value={contact.stateRegion} />
-                  <ContactRow label="Country" value={contact.country} />
-                  <ContactRow label="Postal code" value={contact.postalCode} />
-                  <ContactRow label="Phone" value={contact.phone} href={contact.phone ? `tel:${contact.phone}` : undefined} />
-                  <ContactRow label="Email" value={contact.email} href={contact.email ? `mailto:${contact.email}` : undefined} />
-                  <ContactRow label="Contact person" value={contact.contactPerson} />
-                  <ContactRow label="Role / department" value={contact.roleDepartment} />
-                  <ContactRow label="Contact source" value={contact.contactSource} />
-                  <ContactRow label="Last verified" value={formatDate(contact.lastVerified || null)} />
-                  <ContactRow label="Website" value={contact.website} href={contact.website || undefined} />
-                </div>
+
+                <DrawerSection title="Institutional contact">
+                  <div className="divide-y divide-slate-100">
+                    <ContactRow label="Phone" value={contact.phone} href={contact.phone ? `tel:${contact.phone}` : undefined} />
+                    <ContactRow label="Email" value={contact.email} href={contact.email ? `mailto:${contact.email}` : undefined} />
+                    <ContactRow label="Address" value={contact.address} />
+                    <ContactRow label="City" value={contact.city} />
+                    <ContactRow label="State / region" value={contact.stateRegion} />
+                    <ContactRow label="Country" value={contact.country} />
+                    <ContactRow label="Postal code" value={contact.postalCode} />
+                    <ContactRow label="Last verified" value={formatDate(contact.lastVerified || null)} />
+                  </div>
+                </DrawerSection>
+
+                <DrawerSection
+                  title="Recommended people"
+                  subtitle={
+                    people.length
+                      ? "Ranked for this PIA requirement — not generic organizational seniority."
+                      : "Run deep PCIA to identify requirement-specific people."
+                  }
+                >
+                  {people.length ? (
+                    <div className="space-y-3">
+                      {people.map((person, index) => (
+                        <PersonCard key={person.person_key || `${person.person_name}-${index}`} person={person} rank={index + 1} />
+                      ))}
+                    </div>
+                  ) : (
+                    <EmptyHint text={providerIntelLoading ? "Loading people intelligence…" : "No source-backed people candidates captured yet."} />
+                  )}
+                </DrawerSection>
+
+                <DrawerSection title="Recommended engagement pathway">
+                  {engagement?.recommended_first_contact ||
+                  engagement?.best_channel ||
+                  engagement?.recommended_sequence?.length ? (
+                    <div className="space-y-4 text-sm">
+                      {engagement.recommended_first_contact ? (
+                        <div className="rounded-xl border border-blue-100 bg-blue-50 p-3">
+                          <div className="text-[11px] font-semibold uppercase tracking-wide text-blue-700">First approach</div>
+                          <div className="mt-1 leading-6 text-slate-800">{engagement.recommended_first_contact}</div>
+                        </div>
+                      ) : null}
+                      {engagement.best_channel ? (
+                        <div>
+                          <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Best channel</div>
+                          <div className="mt-1 leading-6 text-slate-800">{engagement.best_channel}</div>
+                        </div>
+                      ) : null}
+                      {engagement.recommended_sequence?.length ? (
+                        <div>
+                          <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Sequence</div>
+                          <ol className="mt-2 space-y-2">
+                            {engagement.recommended_sequence.map((step, index) => (
+                              <li key={index} className="flex gap-3 leading-6 text-slate-700">
+                                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-900 text-[11px] font-semibold text-white">
+                                  {index + 1}
+                                </span>
+                                <span>{step.replace(/^\d+\.\s*/, "")}</span>
+                              </li>
+                            ))}
+                          </ol>
+                        </div>
+                      ) : null}
+                      {engagement.rationale ? (
+                        <details className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+                          <summary className="cursor-pointer text-xs font-semibold text-slate-600">Why this pathway</summary>
+                          <p className="mt-2 leading-6 text-slate-700">{engagement.rationale}</p>
+                        </details>
+                      ) : null}
+                    </div>
+                  ) : (
+                    <EmptyHint text="No engagement pathway captured yet." />
+                  )}
+                </DrawerSection>
+
+                <DrawerSection title="Evidence & provenance" subtitle={`${evidenceUrls.length} source URLs captured`}>
+                  <EvidenceLinks urls={evidenceUrls} />
+                </DrawerSection>
               </>
             ) : (
               <div className="px-6 py-16 text-center">
@@ -573,4 +787,170 @@ function ContactRow({
       </div>
     </div>
   );
+}
+
+
+function DrawerSection({
+  title,
+  subtitle,
+  children,
+}: {
+  title: string;
+  subtitle?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="border-b border-slate-200 px-5 py-5 last:border-b-0">
+      <div className="mb-3">
+        <h3 className="text-sm font-semibold text-slate-900">{title}</h3>
+        {subtitle ? <p className="mt-1 text-xs leading-5 text-slate-500">{subtitle}</p> : null}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function PeopleStatusBadge({ status }: { status: string }) {
+  const normalized = String(status || "NOT_STARTED").toUpperCase();
+  const className =
+    normalized === "OUTREACH_READY"
+      ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+      : normalized === "MULTI_SOURCE_VERIFIED"
+        ? "border-blue-200 bg-blue-50 text-blue-700"
+        : normalized === "CANDIDATES_FOUND"
+          ? "border-violet-200 bg-violet-50 text-violet-700"
+          : normalized === "FAILED"
+            ? "border-rose-200 bg-rose-50 text-rose-700"
+            : "border-slate-200 bg-slate-50 text-slate-600";
+
+  return (
+    <span className={`inline-flex rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide ${className}`}>
+      People: {normalized.replaceAll("_", " ")}
+    </span>
+  );
+}
+
+function PersonCard({ person, rank }: { person: PciaPerson; rank: number }) {
+  const relevance = numericScore(person.relevance_score);
+  const confidence = numericScore(person.confidence);
+  const sources = uniqueUrls(person.source_urls || []);
+
+  return (
+    <article className="rounded-xl border border-slate-200 bg-slate-50/60 p-4">
+      <div className="flex items-start gap-3">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-900 text-xs font-semibold text-white">
+          {rank}
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <h4 className="font-semibold text-slate-950">{person.person_name || "Unnamed professional"}</h4>
+            <PersonStatusBadge status={person.status || "IDENTIFIED"} />
+          </div>
+          {person.role_title ? (
+            <p className="mt-1 text-xs leading-5 text-slate-600">{person.role_title}</p>
+          ) : null}
+          <div className="mt-2 flex flex-wrap gap-2 text-[11px]">
+            {relevance !== null ? (
+              <span className="rounded-full bg-white px-2 py-1 font-semibold text-slate-700 ring-1 ring-slate-200">
+                Relevance {relevance}/100
+              </span>
+            ) : null}
+            {confidence !== null ? (
+              <span className="rounded-full bg-white px-2 py-1 font-semibold text-slate-700 ring-1 ring-slate-200">
+                Confidence {confidence}%
+              </span>
+            ) : null}
+          </div>
+
+          {person.relevance_reason ? (
+            <p className="mt-3 text-xs leading-5 text-slate-700">{person.relevance_reason}</p>
+          ) : null}
+
+          <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs">
+            {person.professional_email ? (
+              <a href={`mailto:${person.professional_email}`} className="font-medium text-blue-700 hover:underline">
+                Email / route ↗
+              </a>
+            ) : null}
+            {person.professional_phone ? (
+              <a href={`tel:${person.professional_phone}`} className="font-medium text-blue-700 hover:underline">
+                Phone ↗
+              </a>
+            ) : null}
+            {person.linkedin_url ? (
+              <a href={person.linkedin_url} target="_blank" rel="noreferrer" className="font-medium text-blue-700 hover:underline">
+                LinkedIn ↗
+              </a>
+            ) : null}
+          </div>
+
+          {sources.length ? (
+            <details className="mt-3">
+              <summary className="cursor-pointer text-xs font-semibold text-slate-600">
+                Evidence sources ({sources.length})
+              </summary>
+              <div className="mt-2">
+                <EvidenceLinks urls={sources} compact />
+              </div>
+            </details>
+          ) : null}
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function PersonStatusBadge({ status }: { status: string }) {
+  const normalized = String(status).toUpperCase();
+  const className =
+    normalized === "OUTREACH_READY"
+      ? "bg-emerald-100 text-emerald-800"
+      : normalized === "MULTI_SOURCE_VERIFIED"
+        ? "bg-blue-100 text-blue-800"
+        : normalized === "ROLE_MATCHED"
+          ? "bg-violet-100 text-violet-800"
+          : normalized === "CONTACT_FOUND"
+            ? "bg-amber-100 text-amber-800"
+            : "bg-slate-200 text-slate-700";
+
+  return (
+    <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${className}`}>
+      {normalized.replaceAll("_", " ")}
+    </span>
+  );
+}
+
+function EvidenceLinks({ urls, compact = false }: { urls: string[]; compact?: boolean }) {
+  if (!urls.length) return <EmptyHint text="No source URLs captured." />;
+
+  return (
+    <div className="space-y-2">
+      {urls.map((url, index) => {
+        let host = url;
+        try {
+          host = new URL(url).hostname.replace(/^www\./, "");
+        } catch {
+          // Keep the original URL label.
+        }
+
+        return (
+          <a
+            key={url}
+            href={url}
+            target="_blank"
+            rel="noreferrer"
+            className={`block rounded-lg border border-slate-200 bg-white px-3 py-2 text-blue-700 hover:border-blue-200 hover:bg-blue-50 ${compact ? "text-[11px]" : "text-xs"}`}
+          >
+            <span className="font-semibold">Source {index + 1}</span>
+            <span className="ml-2 break-all text-slate-500">{host}</span>
+            <span className="ml-1">↗</span>
+          </a>
+        );
+      })}
+    </div>
+  );
+}
+
+function EmptyHint({ text }: { text: string }) {
+  return <div className="rounded-lg bg-slate-50 px-3 py-4 text-sm text-slate-500">{text}</div>;
 }
