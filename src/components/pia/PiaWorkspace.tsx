@@ -925,7 +925,6 @@ export function PiaWorkspace() {
             />
             <aside className="fixed inset-y-0 right-0 z-50 w-full max-w-[640px] overflow-y-auto border-l border-slate-200 bg-white shadow-2xl">
               <div className="min-h-full">
-              <>
                 <div className="border-b border-slate-200 px-5 py-5">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
