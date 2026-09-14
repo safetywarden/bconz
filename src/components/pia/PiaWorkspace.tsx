@@ -765,7 +765,12 @@ export function PiaWorkspace() {
                             </td>
                             <td className="px-5 py-4 text-xs font-medium text-slate-600">{signalOf(row)}</td>
                             <td className="px-5 py-4">
-                              <StatusBadge status={contactRow.status} />
+                              <div className="flex flex-wrap gap-1.5">
+                                <StatusBadge status={contactRow.status} />
+                                {peopleStatusOfRow(row) !== "NOT_STARTED" ? (
+                                  <PeopleStatusBadge status={peopleStatusOfRow(row)} />
+                                ) : null}
+                              </div>
                             </td>
                           </tr>
                         );
