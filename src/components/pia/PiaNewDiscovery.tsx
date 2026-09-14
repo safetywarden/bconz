@@ -18,6 +18,7 @@ export function PiaNewDiscovery() {
   const [runId, setRunId] = useState("");
   const [run, setRun] = useState<JsonRecord | null>(null);
   const [starting, setStarting] = useState(false);
+  const [validation, setValidation] = useState<JsonRecord | null>(null);
   const [error, setError] = useState("");
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
@@ -104,8 +105,23 @@ export function PiaNewDiscovery() {
 
     setStarting(true);
     setError("");
+    setValidation(null);
     setRun(null);
     try {
+      const validationResponse = await fetch("/api/pia/validate-requirement", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ requirement_text: cleanRequirement }),
+      });
+      const validationPayload = await validationResponse.json();
+      if (!validationResponse.ok || validationPayload?.valid !== true) {
+        throw new Error(
+          validationPayload?.detail ||
+          "PIA could not resolve the requirement. No discovery run was created.",
+        );
+      }
+      setValidation(validationPayload);
+
       const cleanTitle =
         title.trim() ||
         cleanRequirement.split(/\n|\.|;/)[0].slice(0, 90) ||
@@ -206,6 +222,18 @@ export function PiaNewDiscovery() {
                     className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                   />
                 </label>
+
+                {validation ? (
+                  <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs leading-5 text-emerald-900">
+                    <div className="font-semibold">Requirement resolved</div>
+                    <div>Country: {String(validation.country || "—")}</div>
+                    <div>
+                      Disease: {Array.isArray(validation.diseases) ? validation.diseases.join(", ") : "—"}
+                    </div>
+                    <div>Specialty: {String(validation.specialty || "—")}</div>
+                    <div>Intent: {String(validation.requirement_type || "—")}</div>
+                  </div>
+                ) : null}
 
                 <button
                   type="button"
