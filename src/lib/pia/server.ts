@@ -3,6 +3,8 @@ import "server-only";
 const DEFAULT_PIA_GATEWAY = "https://pia-gateway-live-production.up.railway.app";
 const DEFAULT_PCIA_GATEWAY = "https://pcia-gateway-live-production.up.railway.app";
 
+// Server-only proxy: Railway gateway credentials must never be exposed to the browser.
+
 function required(name: string): string {
   const value = process.env[name]?.trim();
   if (!value) {
