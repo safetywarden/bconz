@@ -3,6 +3,7 @@ import "server-only";
 import { createHmac, timingSafeEqual } from "node:crypto";
 
 export const PIA_SESSION_COOKIE = "bconz_pia_session";
+// Access is enforced server-side for both the PIA UI and PIA/PCIA proxy routes.
 
 function accessPassword(): string {
   return process.env.PIA_ACCESS_PASSWORD?.trim() || "";
