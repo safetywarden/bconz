@@ -1,7 +1,7 @@
 import "server-only";
 
 const DEFAULT_PIA_GATEWAY = "https://pia-gateway-live-production.up.railway.app";
-const DEFAULT_PCIA_GATEWAY = "https://pcia-gateway-live-production.up.railway.app";
+const DEFAULT_PCIA_GATEWAY = DEFAULT_PIA_GATEWAY;
 
 // Server-only proxy: Railway gateway credentials must never be exposed to the browser.
 
@@ -32,10 +32,8 @@ export async function piaGatewayRequest(path: string, init: RequestInit = {}) {
 }
 
 export async function pciaGatewayRequest(path: string, init: RequestInit = {}) {
-  const baseUrl = (process.env.PCIA_GATEWAY_URL?.trim() || DEFAULT_PCIA_GATEWAY).replace(/\/$/, "");
-  const token =
-    process.env.PCIA_PRODUCT_API_TOKEN?.trim() ||
-    required("PIA_PRODUCT_API_TOKEN");
+  const baseUrl = (process.env.PIA_GATEWAY_URL?.trim() || DEFAULT_PCIA_GATEWAY).replace(/\/$/, "");
+  const token = required("PIA_PRODUCT_API_TOKEN");
   const ownerId = process.env.PIA_OWNER_ID?.trim() || "bconz-production";
 
   return fetch(`${baseUrl}${path}`, {
@@ -45,6 +43,7 @@ export async function pciaGatewayRequest(path: string, init: RequestInit = {}) {
       Accept: "application/json",
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
+      "X-PIA-Owner-Id": ownerId,
       "X-BCONZ-Owner-Id": ownerId,
       ...(init.headers || {}),
     },
