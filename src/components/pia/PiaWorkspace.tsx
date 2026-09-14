@@ -201,6 +201,14 @@ function numericScore(value: unknown, scale = 100) {
   return parsed <= 1 && scale === 100 ? Math.round(parsed * 100) : Math.round(parsed);
 }
 
+function canonicalPersonName(name: string) {
+  return name
+    .replace(/^(dr|prof|professor|mr|mrs|ms|miss)\.?\s+/i, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+}
+
 function uniqueUrls(...values: unknown[]) {
   const urls: string[] = [];
   for (const value of values) {
@@ -305,15 +313,22 @@ export function PiaWorkspace() {
   );
 
   const contact = selectedRow ? contactFromIntel(selectedRow, providerIntel) : null;
-  const people = useMemo(
-    () =>
+  const people = useMemo(() => {
+    const source =
       (Array.isArray(providerIntel?.people) && providerIntel.people.length
         ? providerIntel.people
         : Array.isArray(providerIntel?.contact_details?.people_intelligence)
           ? providerIntel?.contact_details?.people_intelligence
-          : []) as PciaPerson[],
-    [providerIntel],
-  );
+          : []) as PciaPerson[];
+
+    const seen = new Set<string>();
+    return source.filter((person) => {
+      const key = canonicalPersonName(String(person.person_name || ""));
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [providerIntel]);
   const engagement = (providerIntel?.contact_details?.engagement_pathway || {}) as EngagementPathway;
   const peopleStatus = String(
     value(providerIntel?.contact_details?.people_status, people.length ? "CANDIDATES_FOUND" : "NOT_STARTED"),
