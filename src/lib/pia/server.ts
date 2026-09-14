@@ -14,7 +14,7 @@ function required(name: string): string {
 export async function piaGatewayRequest(path: string, init: RequestInit = {}) {
   const baseUrl = (process.env.PIA_GATEWAY_URL?.trim() || DEFAULT_PIA_GATEWAY).replace(/\/$/, "");
   const token = required("PIA_PRODUCT_API_TOKEN");
-  const ownerId = required("PIA_OWNER_ID");
+  const ownerId = process.env.PIA_OWNER_ID?.trim() || "bconz-production";
 
   return fetch(`${baseUrl}${path}`, {
     ...init,
@@ -34,7 +34,7 @@ export async function pciaGatewayRequest(path: string, init: RequestInit = {}) {
   const token =
     process.env.PCIA_PRODUCT_API_TOKEN?.trim() ||
     required("PIA_PRODUCT_API_TOKEN");
-  const ownerId = required("PIA_OWNER_ID");
+  const ownerId = process.env.PIA_OWNER_ID?.trim() || "bconz-production";
 
   return fetch(`${baseUrl}${path}`, {
     ...init,
