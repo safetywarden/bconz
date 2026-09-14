@@ -18,6 +18,7 @@ export async function POST(request: NextRequest) {
         pilot_id: pilotId,
         limit: body?.limit ?? 20,
         force: Boolean(body?.force),
+        people: Boolean(body?.people),
       }),
     });
     const { payload, status } = await proxyJson(upstream);
