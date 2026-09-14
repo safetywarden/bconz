@@ -22,6 +22,7 @@ export async function POST(request: NextRequest) {
         pilot_id: pilotId,
         provider_id: providerId,
         force: Boolean(body?.force),
+        people: body?.people !== false,
       }),
     });
     const { payload, status } = await proxyJson(upstream);
