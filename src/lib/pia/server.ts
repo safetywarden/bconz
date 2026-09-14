@@ -31,7 +31,9 @@ export async function piaGatewayRequest(path: string, init: RequestInit = {}) {
 
 export async function pciaGatewayRequest(path: string, init: RequestInit = {}) {
   const baseUrl = (process.env.PCIA_GATEWAY_URL?.trim() || DEFAULT_PCIA_GATEWAY).replace(/\/$/, "");
-  const token = required("PCIA_PRODUCT_API_TOKEN");
+  const token =
+    process.env.PCIA_PRODUCT_API_TOKEN?.trim() ||
+    required("PIA_PRODUCT_API_TOKEN");
   const ownerId = required("PIA_OWNER_ID");
 
   return fetch(`${baseUrl}${path}`, {
