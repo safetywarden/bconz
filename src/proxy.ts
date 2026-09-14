@@ -27,6 +27,8 @@ function authorized(request: NextRequest) {
 
 export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
+  const host = (request.headers.get("host") || "").split(":")[0].toLowerCase();
+  const isPiaCustomDomain = host === "pia.bconz.com";
 
   if (pathname === "/pia/login" || pathname === "/api/pia/session") {
     return NextResponse.next();
@@ -34,8 +36,9 @@ export function proxy(request: NextRequest) {
 
   const isPiaPage = pathname === "/pia" || pathname.startsWith("/pia/");
   const isPiaApi = pathname.startsWith("/api/pia/") || pathname.startsWith("/api/pcia/");
+  const isPiaDomainRoot = isPiaCustomDomain && pathname === "/";
 
-  if (!isPiaPage && !isPiaApi) {
+  if (!isPiaPage && !isPiaApi && !isPiaDomainRoot) {
     return NextResponse.next();
   }
 
@@ -50,6 +53,9 @@ export function proxy(request: NextRequest) {
   }
 
   if (authorized(request)) {
+    if (isPiaDomainRoot) {
+      return NextResponse.rewrite(new URL("/pia", request.url));
+    }
     return NextResponse.next();
   }
 
@@ -63,5 +69,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/pia/:path*", "/api/pia/:path*", "/api/pcia/:path*"],
+  matcher: ["/", "/pia/:path*", "/api/pia/:path*", "/api/pcia/:path*"],
 };
