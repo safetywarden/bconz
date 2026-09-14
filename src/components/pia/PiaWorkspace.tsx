@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 type JsonRecord = Record<string, any>;
@@ -292,13 +293,6 @@ export function PiaWorkspace() {
   const [batchMessage, setBatchMessage] = useState("");
   const [providerIntel, setProviderIntel] = useState<PciaProviderIntel | null>(null);
   const [providerIntelLoading, setProviderIntelLoading] = useState(false);
-  const [showNewDiscovery, setShowNewDiscovery] = useState(false);
-  const [newDiscoveryTitle, setNewDiscoveryTitle] = useState("");
-  const [newDiscoveryRequirement, setNewDiscoveryRequirement] = useState("");
-  const [newDiscoveryShortlistSize, setNewDiscoveryShortlistSize] = useState(10);
-  const [creatingDiscovery, setCreatingDiscovery] = useState(false);
-  const [pendingDiscoveryId, setPendingDiscoveryId] = useState("");
-  const [discoveryMessage, setDiscoveryMessage] = useState("");
   const [error, setError] = useState("");
 
   const loadPilots = useCallback(async (showLoading = true) => {
@@ -321,70 +315,6 @@ export function PiaWorkspace() {
   useEffect(() => {
     void loadPilots(true);
   }, [loadPilots]);
-
-  useEffect(() => {
-    if (!pendingDiscoveryId) return;
-
-    let cancelled = false;
-    let timer: number | undefined;
-
-    const poll = async () => {
-      try {
-        const response = await fetch(
-          `/api/pia/pilots/${encodeURIComponent(pendingDiscoveryId)}`,
-          { cache: "no-store" },
-        );
-        const payload = await response.json();
-        if (!response.ok) {
-          throw new Error(payload?.detail || "Unable to load new PIA discovery");
-        }
-        if (cancelled) return;
-
-        setPilots((current) => {
-          const exists = current.some((item) => String(item?.id) === pendingDiscoveryId);
-          if (exists) {
-            return current.map((item) =>
-              String(item?.id) === pendingDiscoveryId ? payload : item,
-            );
-          }
-          return [payload, ...current];
-        });
-        setSelectedPilotId(pendingDiscoveryId);
-
-        const status = String(payload?.status || "").toUpperCase();
-        if (status === "READY_FOR_QUALIFICATION") {
-          setDiscoveryMessage(
-            `PIA discovery complete: ${Array.isArray(payload?.provider_universe) ? payload.provider_universe.length : 0} providers found; ${Array.isArray(payload?.shortlist_provider_ids) ? payload.shortlist_provider_ids.length : 0} shortlisted.`,
-          );
-          setPendingDiscoveryId("");
-          return;
-        }
-        if (status === "FAILED") {
-          setDiscoveryMessage(
-            `PIA discovery failed: ${String(payload?.failure || "Unknown execution error")}`,
-          );
-          setPendingDiscoveryId("");
-          return;
-        }
-
-        setDiscoveryMessage(`PIA discovery running — status: ${status || "RUNNING"}.`);
-      } catch {
-        if (!cancelled) {
-          setDiscoveryMessage("PIA discovery is running. Status is temporarily unavailable.");
-        }
-      }
-
-      if (!cancelled) {
-        timer = window.setTimeout(() => void poll(), 8000);
-      }
-    };
-
-    timer = window.setTimeout(() => void poll(), 1200);
-    return () => {
-      cancelled = true;
-      if (timer) window.clearTimeout(timer);
-    };
-  }, [pendingDiscoveryId]);
 
   const pilot = useMemo(
     () => pilots.find((item) => String(item?.id) === selectedPilotId) || pilots[0],
@@ -570,67 +500,6 @@ export function PiaWorkspace() {
     };
   }, [pilot?.id, selectedProviderId]);
 
-  async function createDiscovery() {
-    const requirement = newDiscoveryRequirement.trim();
-    if (!requirement) {
-      setError("Enter a disease / cohort / healthcare data requirement before running PIA.");
-      return;
-    }
-
-    setCreatingDiscovery(true);
-    setError("");
-    setDiscoveryMessage("");
-    try {
-      const title =
-        newDiscoveryTitle.trim() ||
-        requirement.split(/\n|\.|;/)[0].slice(0, 90) ||
-        "Provider intelligence discovery";
-
-      const response = await fetch("/api/pia/pilots", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title,
-          requirement_text: requirement,
-          shortlist_size: Math.max(1, Math.min(100, Number(newDiscoveryShortlistSize) || 10)),
-        }),
-      });
-      const payload = await response.json();
-      if (!response.ok) {
-        throw new Error(payload?.detail || "Unable to start PIA discovery");
-      }
-
-      const id = String(payload?.id || "");
-      if (!id) throw new Error("PIA did not return a new run ID");
-
-      const stub: JsonRecord = {
-        id,
-        title,
-        requirement_text: requirement,
-        shortlist_size: newDiscoveryShortlistSize,
-        status: String(payload?.status || "QUEUED"),
-        provider_universe: [],
-        shortlist_provider_ids: [],
-        viewer_shortlist_provider_ids: [],
-        updated_at: new Date().toISOString(),
-      };
-
-      setPilots((current) => [stub, ...current.filter((item) => String(item?.id) !== id)]);
-      setSelectedPilotId(id);
-      setSelectedProviderId("");
-      setView("requirement");
-      setPendingDiscoveryId(id);
-      setDiscoveryMessage("PIA discovery queued. Provider discovery and ranking are running on the API-funded backend.");
-      setShowNewDiscovery(false);
-      setNewDiscoveryTitle("");
-      setNewDiscoveryRequirement("");
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Unable to start PIA discovery");
-    } finally {
-      setCreatingDiscovery(false);
-    }
-  }
-
   async function enrichProvider() {
     if (!pilot?.id || !selectedProviderId) return;
     setBusyProvider(selectedProviderId);
@@ -793,13 +662,12 @@ export function PiaWorkspace() {
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <button
-              type="button"
-              onClick={() => setShowNewDiscovery((current) => !current)}
+            <Link
+              href="/pia/new"
               className="rounded-xl bg-blue-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-800"
             >
-              {showNewDiscovery ? "Close new discovery" : "New discovery"}
-            </button>
+              New discovery
+            </Link>
             <select
               aria-label="Saved PIA run"
               value={pilot?.id || ""}
@@ -831,88 +699,6 @@ export function PiaWorkspace() {
 
       <div className="mx-auto max-w-[1720px] px-4 py-6 sm:px-6">
         <section className="min-w-0 space-y-5">
-          {showNewDiscovery ? (
-            <div className="rounded-2xl border border-blue-200 bg-white p-5 shadow-sm">
-              <div className="flex flex-col gap-1">
-                <div className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-700">
-                  New PIA discovery
-                </div>
-                <h2 className="text-lg font-semibold text-slate-950">
-                  Describe the disease, cohort or healthcare data you need
-                </h2>
-                <p className="text-sm leading-6 text-slate-600">
-                  PIA will discover the provider universe and produce an evidence-based agent shortlist. PCIA remains a separate follow-on step.
-                </p>
-              </div>
-
-              <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_180px]">
-                <div className="space-y-4">
-                  <label className="block">
-                    <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                      Discovery title <span className="normal-case font-normal">(optional)</span>
-                    </span>
-                    <input
-                      value={newDiscoveryTitle}
-                      onChange={(event) => setNewDiscoveryTitle(event.target.value)}
-                      placeholder="e.g. Multiple Myeloma Data Partners — India"
-                      className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                    />
-                  </label>
-
-                  <label className="block">
-                    <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                      Disease / cohort / data requirement
-                    </span>
-                    <textarea
-                      value={newDiscoveryRequirement}
-                      onChange={(event) => setNewDiscoveryRequirement(event.target.value)}
-                      rows={6}
-                      placeholder="Example: Find healthcare providers in India treating multiple myeloma with longitudinal treatment history, bone-marrow pathology, flow cytometry, FISH and outcomes data. Prioritize centers with strong clinical volume, research capability and data partnership potential."
-                      className="mt-1.5 w-full resize-y rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm leading-6 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                    />
-                  </label>
-                </div>
-
-                <div className="space-y-4">
-                  <label className="block">
-                    <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                      Agent shortlist size
-                    </span>
-                    <input
-                      type="number"
-                      min={1}
-                      max={100}
-                      value={newDiscoveryShortlistSize}
-                      onChange={(event) => setNewDiscoveryShortlistSize(Number(event.target.value) || 10)}
-                      className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                    />
-                  </label>
-
-                  <button
-                    type="button"
-                    onClick={() => void createDiscovery()}
-                    disabled={creatingDiscovery || !newDiscoveryRequirement.trim()}
-                    className="w-full rounded-xl bg-blue-700 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    {creatingDiscovery ? "Starting PIA…" : "Run provider discovery"}
-                  </button>
-                  <p className="text-xs leading-5 text-slate-500">
-                    Discovery uses the server-side OpenAI API execution path. Deep PCIA is not run automatically.
-                  </p>
-                </div>
-              </div>
-            </div>
-          ) : null}
-
-          {discoveryMessage ? (
-            <div className="rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm text-indigo-900">
-              {discoveryMessage}
-              {pendingDiscoveryId ? (
-                <span className="ml-2 font-semibold">Checking this run every 8 seconds.</span>
-              ) : null}
-            </div>
-          ) : null}
-
           {error ? (
             <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
               {error}
