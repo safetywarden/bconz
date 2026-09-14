@@ -287,6 +287,7 @@ export function PiaWorkspace() {
   const [busyShortlist, setBusyShortlist] = useState(false);
   const [pciaSelectedIds, setPciaSelectedIds] = useState<string[]>([]);
   const [batchProviderIds, setBatchProviderIds] = useState<string[]>([]);
+  const [batchStatusByProvider, setBatchStatusByProvider] = useState<Record<string, JsonRecord>>({});
   const [batchMessage, setBatchMessage] = useState("");
   const [providerIntel, setProviderIntel] = useState<PciaProviderIntel | null>(null);
   const [providerIntelLoading, setProviderIntelLoading] = useState(false);
@@ -338,31 +339,67 @@ export function PiaWorkspace() {
 
   useEffect(() => {
     if (!batchProviderIds.length) return;
-    const timer = window.setInterval(() => {
-      void loadPilots(false);
-    }, 8000);
-    return () => window.clearInterval(timer);
-  }, [batchProviderIds.length, loadPilots]);
 
-  useEffect(() => {
-    if (!batchProviderIds.length || !universe.length) return;
+    let cancelled = false;
+    let timer: number | undefined;
 
-    const targetRows = batchProviderIds
-      .map((id) => universe.find((row: JsonRecord) => providerId(row) === id))
-      .filter(Boolean) as JsonRecord[];
+    const poll = async () => {
+      const query = new URLSearchParams();
+      for (const providerId of batchProviderIds) {
+        query.append("provider_id", providerId);
+      }
 
-    if (targetRows.length !== batchProviderIds.length) return;
-    if (!targetRows.every((row) => deepPciaFinished(peopleStatusOfRow(row)))) return;
+      try {
+        const response = await fetch(`/api/pcia/batch-status?${query.toString()}`, {
+          cache: "no-store",
+        });
+        const payload = await response.json();
+        if (!response.ok) {
+          throw new Error(payload?.detail || "Unable to load PCIA batch status");
+        }
+        if (cancelled) return;
 
-    const failed = targetRows.filter((row) => peopleStatusOfRow(row) === "FAILED").length;
-    setBatchMessage(
-      failed
-        ? `Deep PCIA finished: ${targetRows.length - failed} completed, ${failed} failed.`
-        : `Deep PCIA finished for ${targetRows.length} provider${targetRows.length === 1 ? "" : "s"}.`,
-    );
-    setBatchProviderIds([]);
-    void loadPilots(false);
-  }, [batchProviderIds, universe, loadPilots]);
+        const items = Array.isArray(payload?.items) ? payload.items : [];
+        const nextStatus: Record<string, JsonRecord> = {};
+        for (const item of items) {
+          if (item?.provider_id) nextStatus[String(item.provider_id)] = item;
+        }
+        setBatchStatusByProvider(nextStatus);
+
+        const done = Number(payload?.done || 0);
+        const failed = Number(payload?.failed || 0);
+        setBatchMessage(
+          `Deep PCIA progress: ${done}/${batchProviderIds.length} finished${failed ? `, ${failed} failed` : ""}.`,
+        );
+
+        if (done >= batchProviderIds.length) {
+          setBatchProviderIds([]);
+          setBatchMessage(
+            failed
+              ? `Deep PCIA finished: ${batchProviderIds.length - failed} completed, ${failed} failed.`
+              : `Deep PCIA finished for ${batchProviderIds.length} provider${batchProviderIds.length === 1 ? "" : "s"}.`,
+          );
+          // Refresh the large saved PIA run once, only after batch writes are done.
+          await loadPilots(false);
+          return;
+        }
+      } catch {
+        if (!cancelled) {
+          setBatchMessage("Deep PCIA is still running. Progress status is temporarily unavailable.");
+        }
+      }
+
+      if (!cancelled) {
+        timer = window.setTimeout(() => void poll(), 10000);
+      }
+    };
+
+    void poll();
+    return () => {
+      cancelled = true;
+      if (timer) window.clearTimeout(timer);
+    };
+  }, [batchProviderIds, loadPilots]);
 
   const rows = view === "universe" ? universe : shortlist;
   const selectedRow = useMemo(
@@ -511,11 +548,18 @@ export function PiaWorkspace() {
 
       const queued = Array.isArray(payload?.provider_ids) ? payload.provider_ids.map(String) : ids;
       setBatchProviderIds(queued);
+      setBatchStatusByProvider(
+        Object.fromEntries(
+          queued.map((providerId: string) => [
+            providerId,
+            { provider_id: providerId, people_status: "QUEUED", done: false },
+          ]),
+        ),
+      );
       setBatchMessage(
         `Deep PCIA queued for ${queued.length} provider${queued.length === 1 ? "" : "s"}. Completed intelligence will be reused; only missing people intelligence will run.`,
       );
       setPciaSelectedIds([]);
-      await loadPilots(false);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Unable to queue deep PCIA batch");
     } finally {
@@ -569,6 +613,7 @@ export function PiaWorkspace() {
                 setSelectedProviderId("");
                 setPciaSelectedIds([]);
                 setBatchProviderIds([]);
+                setBatchStatusByProvider({});
                 setBatchMessage("");
               }}
               className="min-w-72 rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm shadow-sm"
@@ -601,7 +646,7 @@ export function PiaWorkspace() {
             <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">
               {batchMessage}
               {batchProviderIds.length ? (
-                <span className="ml-2 font-semibold">Refreshing progress every 8 seconds.</span>
+                <span className="ml-2 font-semibold">Lightweight progress check every 10 seconds.</span>
               ) : null}
             </div>
           ) : null}
@@ -719,6 +764,10 @@ export function PiaWorkspace() {
                         const id = providerId(row);
                         const contactRow = contactView(row);
                         const website = providerWebsite(row);
+                        const persistedPeopleStatus = peopleStatusOfRow(row);
+                        const batchPeopleStatus = String(
+                          batchStatusByProvider[id]?.people_status || persistedPeopleStatus,
+                        ).toUpperCase();
                         return (
                           <tr
                             key={id || index}
@@ -767,8 +816,8 @@ export function PiaWorkspace() {
                             <td className="px-5 py-4">
                               <div className="flex flex-wrap gap-1.5">
                                 <StatusBadge status={contactRow.status} />
-                                {peopleStatusOfRow(row) !== "NOT_STARTED" ? (
-                                  <PeopleStatusBadge status={peopleStatusOfRow(row)} />
+                                {batchPeopleStatus !== "NOT_STARTED" ? (
+                                  <PeopleStatusBadge status={batchPeopleStatus} />
                                 ) : null}
                               </div>
                             </td>
