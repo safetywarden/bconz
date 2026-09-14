@@ -174,6 +174,18 @@ function contactView(row: JsonRecord): ContactView {
   };
 }
 
+function rowContactDetails(row: JsonRecord | undefined) {
+  if (!row) return {};
+  const provider = providerObject(row);
+  return (
+    provider?.contact_details ||
+    provider?.contactDetails ||
+    row?.contact_details ||
+    row?.contactDetails ||
+    {}
+  ) as JsonRecord;
+}
+
 function contactFromIntel(row: JsonRecord, intel: PciaProviderIntel | null): ContactView {
   const base = contactView(row);
   const details = intel?.contact_details || {};
@@ -312,6 +324,7 @@ export function PiaWorkspace() {
     [universe, selectedProviderId],
   );
 
+  const selectedRowDetails = rowContactDetails(selectedRow);
   const contact = selectedRow ? contactFromIntel(selectedRow, providerIntel) : null;
   const people = useMemo(() => {
     const source =
@@ -319,7 +332,9 @@ export function PiaWorkspace() {
         ? providerIntel.people
         : Array.isArray(providerIntel?.contact_details?.people_intelligence)
           ? providerIntel?.contact_details?.people_intelligence
-          : []) as PciaPerson[];
+          : Array.isArray(selectedRowDetails?.people_intelligence)
+            ? selectedRowDetails.people_intelligence
+            : []) as PciaPerson[];
 
     const seen = new Set<string>();
     return source.filter((person) => {
@@ -328,10 +343,18 @@ export function PiaWorkspace() {
       seen.add(key);
       return true;
     });
-  }, [providerIntel]);
-  const engagement = (providerIntel?.contact_details?.engagement_pathway || {}) as EngagementPathway;
+  }, [providerIntel, selectedRowDetails]);
+  const engagement = (
+    providerIntel?.contact_details?.engagement_pathway ||
+    selectedRowDetails?.engagement_pathway ||
+    {}
+  ) as EngagementPathway;
   const peopleStatus = String(
-    value(providerIntel?.contact_details?.people_status, people.length ? "CANDIDATES_FOUND" : "NOT_STARTED"),
+    value(
+      providerIntel?.contact_details?.people_status,
+      selectedRowDetails?.people_status,
+      people.length ? "CANDIDATES_FOUND" : "NOT_STARTED",
+    ),
   );
   const evidenceUrls = uniqueUrls(
     contact?.contactSource,
@@ -358,10 +381,11 @@ export function PiaWorkspace() {
         if (!response.ok) throw new Error(payload?.detail || "Unable to load PCIA provider intelligence");
         if (!cancelled) setProviderIntel(payload);
       })
-      .catch((cause) => {
+      .catch(() => {
         if (!cancelled) {
+          // The saved PIA row already carries the persisted PCIA overlay.
+          // Keep the drawer usable even if the provider-details refresh is unavailable.
           setProviderIntel(null);
-          setError(cause instanceof Error ? cause.message : "Unable to load PCIA provider intelligence");
         }
       })
       .finally(() => {
