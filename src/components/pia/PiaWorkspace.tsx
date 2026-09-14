@@ -392,7 +392,11 @@ export function PiaWorkspace() {
       const response = await fetch("/api/pcia/enrich-shortlist", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pilot_id: pilot.id, limit: Math.min(shortlist.length || 20, 20) }),
+        body: JSON.stringify({
+          pilot_id: pilot.id,
+          limit: Math.min(shortlist.length || 20, 20),
+          people: false,
+        }),
       });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload?.detail || "PCIA shortlist enrichment failed");
@@ -487,7 +491,7 @@ export function PiaWorkspace() {
                   disabled={busyShortlist}
                   className="rounded-lg bg-blue-700 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-800 disabled:opacity-50"
                 >
-                  {busyShortlist ? "PCIA enriching…" : "Enrich shortlist with PCIA"}
+                  {busyShortlist ? "Enriching contacts…" : "Enrich shortlist contacts"}
                 </button>
               ) : null}
             </div>
