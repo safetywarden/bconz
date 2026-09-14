@@ -251,6 +251,68 @@ function signalOf(row: JsonRecord) {
   );
 }
 
+function scorecardOf(row: JsonRecord | undefined) {
+  if (!row) return {} as JsonRecord;
+  return (row?.scorecard && typeof row.scorecard === "object" ? row.scorecard : {}) as JsonRecord;
+}
+
+function headlineScores(row: JsonRecord | undefined) {
+  return (scorecardOf(row)?.headline || {}) as JsonRecord;
+}
+
+function scoreDimensions(row: JsonRecord | undefined) {
+  return (scorecardOf(row)?.dimensions || {}) as JsonRecord;
+}
+
+function scoreNumber(value: unknown) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? Math.round(parsed) : null;
+}
+
+function assetPotential(row: JsonRecord | undefined) {
+  return scoreNumber(headlineScores(row)?.asset_potential);
+}
+
+function currentReadiness(row: JsonRecord | undefined) {
+  return scoreNumber(headlineScores(row)?.current_readiness);
+}
+
+function partnershipPotential(row: JsonRecord | undefined) {
+  return scoreNumber(headlineScores(row)?.partnership_enablement_potential);
+}
+
+function evidenceConfidence(row: JsonRecord | undefined) {
+  return scoreNumber(scoreDimensions(row)?.evidence_confidence?.score);
+}
+
+function classificationOf(row: JsonRecord | undefined) {
+  return String(scorecardOf(row)?.classification || "Qualification pending");
+}
+
+function rankingStandardOf(row: JsonRecord | undefined) {
+  return String(scorecardOf(row)?.ranking_standard || "COMMERCIAL_V2");
+}
+
+function rankExplanationOf(row: JsonRecord | undefined) {
+  const values = scorecardOf(row)?.rank_explanation;
+  return Array.isArray(values) ? values.map(String) : [];
+}
+
+function criticalUnknownsOf(row: JsonRecord | undefined) {
+  const values = scorecardOf(row)?.critical_unknowns;
+  return Array.isArray(values) ? values.map(String) : [];
+}
+
+function countryLabel(code: unknown) {
+  const raw = String(code || "").trim().toUpperCase();
+  if (!raw) return "Country unverified";
+  try {
+    return new Intl.DisplayNames(["en"], { type: "region" }).of(raw) || raw;
+  } catch {
+    return raw;
+  }
+}
+
 function formatDate(value: string | null | undefined) {
   if (!value) return null;
   const date = new Date(value);
@@ -928,7 +990,18 @@ export function PiaWorkspace() {
                             <td className="min-w-0 px-4 py-4">
                               <div className="break-words font-semibold text-slate-900">{providerName(row)}</div>
                               <div className="mt-1 text-xs text-slate-500">
-                                {String(providerObject(row)?.country_code || "—")} · {String(providerObject(row)?.provider_type || "provider")}
+                                {countryLabel(providerObject(row)?.country_code)} · {String(providerObject(row)?.provider_type || "provider")}
+                              </div>
+                              <div className="mt-2 flex flex-wrap gap-1.5 text-[10px] font-semibold">
+                                <span className="rounded-full bg-blue-50 px-2 py-1 text-blue-800">
+                                  Asset {assetPotential(row) ?? "—"}
+                                </span>
+                                <span className="rounded-full bg-slate-100 px-2 py-1 text-slate-700">
+                                  Readiness {currentReadiness(row) ?? "—"}
+                                </span>
+                                <span className="rounded-full bg-violet-50 px-2 py-1 text-violet-800">
+                                  Enablement {partnershipPotential(row) ?? "—"}
+                                </span>
                               </div>
                             </td>
                             <td className="px-3 py-4 text-sm">
@@ -946,8 +1019,14 @@ export function PiaWorkspace() {
                                 <span className="text-slate-400">Not resolved</span>
                               )}
                             </td>
-                            <td className="hidden px-3 py-4 text-xs font-medium text-slate-600 lg:table-cell">{signalOf(row)}</td>
+                            <td className="hidden px-3 py-4 text-xs font-medium text-slate-600 lg:table-cell">
+                              <div>Confidence {evidenceConfidence(row) ?? "—"}</div>
+                              <div className="mt-1 text-[10px] font-normal text-slate-400">{signalOf(row)}</div>
+                            </td>
                             <td className="px-3 py-4">
+                              <div className="mb-2 text-[10px] font-semibold leading-4 text-slate-700">
+                                {classificationOf(row)}
+                              </div>
                               <div className="flex flex-wrap gap-1.5">
                                 <StatusBadge status={contactRow.status} />
                                 {batchPeopleStatus !== "NOT_STARTED" ? (
@@ -986,6 +1065,9 @@ export function PiaWorkspace() {
                       </div>
                       <h2 className="mt-1 text-xl font-semibold">{providerName(selectedRow)}</h2>
                       <div className="mt-2 flex flex-wrap gap-2">
+                        <span className="rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-800">
+                          {rankingStandardOf(selectedRow)}
+                        </span>
                         <StatusBadge status={contact.status} />
                         <PeopleStatusBadge status={peopleStatus} />
                         {people.length ? (
@@ -1031,6 +1113,50 @@ export function PiaWorkspace() {
                     <div className="mt-3 text-xs text-slate-500">Loading full PCIA intelligence…</div>
                   ) : null}
                 </div>
+
+                <DrawerSection
+                  title="PIA commercial ranking"
+                  subtitle="Public-evidence qualification — not a claim that a dataset or partnership is already available."
+                >
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                    <MiniScore label="Asset potential" value={assetPotential(selectedRow)} />
+                    <MiniScore label="Current readiness" value={currentReadiness(selectedRow)} />
+                    <MiniScore label="Enablement" value={partnershipPotential(selectedRow)} />
+                    <MiniScore label="Evidence confidence" value={evidenceConfidence(selectedRow)} />
+                  </div>
+                  <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3">
+                    <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                      Qualification
+                    </div>
+                    <div className="mt-1 text-sm font-semibold text-slate-900">
+                      {classificationOf(selectedRow)}
+                    </div>
+                  </div>
+                  {rankExplanationOf(selectedRow).length ? (
+                    <div className="mt-4">
+                      <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        Why PIA ranked this provider
+                      </div>
+                      <ul className="mt-2 space-y-1.5 text-sm leading-5 text-slate-700">
+                        {rankExplanationOf(selectedRow).slice(0, 8).map((item) => (
+                          <li key={item}>• {item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
+                  {criticalUnknownsOf(selectedRow).length ? (
+                    <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3">
+                      <div className="text-xs font-semibold uppercase tracking-wide text-amber-800">
+                        Verification required
+                      </div>
+                      <ul className="mt-2 space-y-1.5 text-sm leading-5 text-amber-950">
+                        {criticalUnknownsOf(selectedRow).slice(0, 6).map((item) => (
+                          <li key={item}>• {item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
+                </DrawerSection>
 
                 <DrawerSection title="Institutional contact">
                   <div className="divide-y divide-slate-100">
@@ -1190,6 +1316,16 @@ function ContactRow({
   );
 }
 
+
+function MiniScore({ label, value }: { label: string; value: number | null }) {
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white p-3">
+      <div className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">{label}</div>
+      <div className="mt-1 text-xl font-semibold text-slate-900">{value ?? "—"}</div>
+      <div className="text-[10px] text-slate-400">/100</div>
+    </div>
+  );
+}
 
 function DrawerSection({
   title,
