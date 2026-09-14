@@ -13,11 +13,14 @@ function formatElapsed(seconds: number) {
 
 export function PiaNewDiscovery() {
   const [title, setTitle] = useState("");
+  const [disease, setDisease] = useState("");
+  const [country, setCountry] = useState("USA");
   const [requirement, setRequirement] = useState("");
   const [shortlistSize, setShortlistSize] = useState(10);
   const [runId, setRunId] = useState("");
   const [run, setRun] = useState<JsonRecord | null>(null);
   const [starting, setStarting] = useState(false);
+  const [suggesting, setSuggesting] = useState(false);
   const [validation, setValidation] = useState<JsonRecord | null>(null);
   const [error, setError] = useState("");
   const [startedAt, setStartedAt] = useState<number | null>(null);
@@ -95,6 +98,53 @@ export function PiaNewDiscovery() {
     if (elapsedSeconds >= 600) return "slow";
     return "normal";
   }, [runId, complete, failed, elapsedSeconds]);
+
+  async function suggestRequirement() {
+    const cleanDisease = disease.trim();
+    if (!cleanDisease) {
+      setError("Enter a disease or condition first.");
+      return;
+    }
+    if (!country.trim()) {
+      setError("Choose a country / market first.");
+      return;
+    }
+
+    setSuggesting(true);
+    setError("");
+    setValidation(null);
+    try {
+      const response = await fetch("/api/pia/suggest-requirement", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          disease: cleanDisease,
+          country,
+        }),
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload?.detail || "Unable to suggest a PIA requirement");
+      }
+
+      const suggestedRequirement = String(payload?.suggested_requirement || "").trim();
+      if (!suggestedRequirement) {
+        throw new Error("PIA did not return a suggested requirement");
+      }
+
+      setRequirement(suggestedRequirement);
+      if (!title.trim() && payload?.suggested_title) {
+        setTitle(String(payload.suggested_title));
+      }
+      if (payload?.resolved) {
+        setValidation(payload.resolved);
+      }
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Unable to suggest a PIA requirement");
+    } finally {
+      setSuggesting(false);
+    }
+  }
 
   async function startDiscovery() {
     const cleanRequirement = requirement.trim();
@@ -182,6 +232,56 @@ export function PiaNewDiscovery() {
           <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_190px]">
               <div className="space-y-4">
+                <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_220px]">
+                  <label className="block">
+                    <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      Disease / condition
+                    </span>
+                    <input
+                      value={disease}
+                      onChange={(event) => {
+                        setDisease(event.target.value);
+                        setValidation(null);
+                      }}
+                      placeholder="e.g. Myasthenia Gravis"
+                      className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                    />
+                  </label>
+
+                  <label className="block">
+                    <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      Country / market
+                    </span>
+                    <select
+                      value={country}
+                      onChange={(event) => {
+                        setCountry(event.target.value);
+                        setValidation(null);
+                      }}
+                      className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                    >
+                      <option value="USA">USA</option>
+                      <option value="India">India</option>
+                      <option value="United Kingdom">United Kingdom</option>
+                      <option value="Germany">Germany</option>
+                    </select>
+                  </label>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => void suggestRequirement()}
+                    disabled={suggesting || !disease.trim() || !country.trim()}
+                    className="rounded-xl border border-blue-300 bg-blue-50 px-4 py-2.5 text-sm font-semibold text-blue-800 hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {suggesting ? "Preparing requirement…" : "Suggest requirement"}
+                  </button>
+                  <span className="text-xs leading-5 text-slate-500">
+                    PIA will draft a disease-appropriate requirement using a consistent discovery structure. You can edit it before running.
+                  </span>
+                </div>
+
                 <label className="block">
                   <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                     Discovery title <span className="normal-case font-normal">(optional)</span>
@@ -189,7 +289,7 @@ export function PiaNewDiscovery() {
                   <input
                     value={title}
                     onChange={(event) => setTitle(event.target.value)}
-                    placeholder="e.g. Multiple Sclerosis provider discovery — USA"
+                    placeholder="Auto-filled after requirement suggestion, or enter your own"
                     className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                   />
                 </label>
@@ -200,9 +300,12 @@ export function PiaNewDiscovery() {
                   </span>
                   <textarea
                     value={requirement}
-                    onChange={(event) => setRequirement(event.target.value)}
+                    onChange={(event) => {
+                      setRequirement(event.target.value);
+                      setValidation(null);
+                    }}
                     rows={8}
-                    placeholder="Example: Find healthcare providers in the USA treating multiple sclerosis with longitudinal treatment history, MRI, relapse/progression outcomes, clinical-trial activity and data partnership potential."
+                    placeholder="Enter your own requirement, or use Suggest requirement above to auto-populate a consistent editable draft."
                     className="mt-1.5 w-full resize-y rounded-xl border border-slate-300 px-3 py-3 text-sm leading-6 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                   />
                 </label>
@@ -225,7 +328,7 @@ export function PiaNewDiscovery() {
 
                 {validation ? (
                   <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs leading-5 text-emerald-900">
-                    <div className="font-semibold">Requirement resolved</div>
+                    <div className="font-semibold">PIA requirement resolved</div>
                     <div>Country: {String(validation.country || "—")}</div>
                     <div>
                       Disease: {Array.isArray(validation.diseases) ? validation.diseases.join(", ") : "—"}
@@ -238,7 +341,7 @@ export function PiaNewDiscovery() {
                 <button
                   type="button"
                   onClick={() => void startDiscovery()}
-                  disabled={starting || !requirement.trim()}
+                  disabled={starting || suggesting || !requirement.trim()}
                   className="w-full rounded-xl bg-blue-700 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {starting ? "Starting PIA…" : "Run provider discovery"}
