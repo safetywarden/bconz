@@ -3,6 +3,25 @@ import { piaGatewayRequest, proxyJson } from "@/lib/pia/server";
 
 export const dynamic = "force-dynamic";
 
+export async function GET(
+  _request: NextRequest,
+  context: { params: Promise<{ pilotId: string }> },
+) {
+  try {
+    const { pilotId } = await context.params;
+    const upstream = await piaGatewayRequest(
+      `/v1/pilots/${encodeURIComponent(pilotId)}`,
+    );
+    const { payload, status } = await proxyJson(upstream);
+    return NextResponse.json(payload, { status });
+  } catch (error) {
+    return NextResponse.json(
+      { detail: error instanceof Error ? error.message : "Unable to load PIA run" },
+      { status: 500 },
+    );
+  }
+}
+
 export async function PATCH(
   request: NextRequest,
   context: { params: Promise<{ pilotId: string }> },
