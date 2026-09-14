@@ -281,10 +281,11 @@ export function PiaWorkspace() {
   const [pilots, setPilots] = useState<JsonRecord[]>([]);
   const [selectedPilotId, setSelectedPilotId] = useState("");
   const [selectedProviderId, setSelectedProviderId] = useState("");
-  const [view, setView] = useState<"shortlist" | "universe" | "requirement">("shortlist");
+  const [view, setView] = useState<"agent" | "viewer" | "universe" | "requirement">("agent");
   const [loading, setLoading] = useState(true);
   const [busyProvider, setBusyProvider] = useState("");
   const [busyShortlist, setBusyShortlist] = useState(false);
+  const [busyViewerProvider, setBusyViewerProvider] = useState("");
   const [pciaSelectedIds, setPciaSelectedIds] = useState<string[]>([]);
   const [batchProviderIds, setBatchProviderIds] = useState<string[]>([]);
   const [batchStatusByProvider, setBatchStatusByProvider] = useState<Record<string, JsonRecord>>({});
@@ -324,17 +325,30 @@ export function PiaWorkspace() {
     [pilot],
   );
 
-  const shortlistIds = useMemo(() => {
-    const values =
-      (Array.isArray(pilot?.viewer_shortlist_provider_ids) && pilot.viewer_shortlist_provider_ids.length
-        ? pilot.viewer_shortlist_provider_ids
-        : pilot?.shortlist_provider_ids) || [];
-    return new Set(values.map(String));
-  }, [pilot]);
+  const agentShortlistIds = useMemo(
+    () => new Set((Array.isArray(pilot?.shortlist_provider_ids) ? pilot.shortlist_provider_ids : []).map(String)),
+    [pilot],
+  );
 
-  const shortlist = useMemo(
-    () => universe.filter((row: JsonRecord) => shortlistIds.has(providerId(row))),
-    [universe, shortlistIds],
+  const viewerShortlistIds = useMemo(
+    () =>
+      new Set(
+        (Array.isArray(pilot?.viewer_shortlist_provider_ids)
+          ? pilot.viewer_shortlist_provider_ids
+          : []
+        ).map(String),
+      ),
+    [pilot],
+  );
+
+  const agentShortlist = useMemo(
+    () => universe.filter((row: JsonRecord) => agentShortlistIds.has(providerId(row))),
+    [universe, agentShortlistIds],
+  );
+
+  const viewerShortlist = useMemo(
+    () => universe.filter((row: JsonRecord) => viewerShortlistIds.has(providerId(row))),
+    [universe, viewerShortlistIds],
   );
 
   useEffect(() => {
@@ -401,7 +415,12 @@ export function PiaWorkspace() {
     };
   }, [batchProviderIds, loadPilots]);
 
-  const rows = view === "universe" ? universe : shortlist;
+  const rows =
+    view === "universe"
+      ? universe
+      : view === "viewer"
+        ? viewerShortlist
+        : agentShortlist;
   const selectedRow = useMemo(
     () => universe.find((row: JsonRecord) => providerId(row) === selectedProviderId),
     [universe, selectedProviderId],
@@ -506,6 +525,43 @@ export function PiaWorkspace() {
     }
   }
 
+  async function toggleViewerShortlist(id: string) {
+    if (!pilot?.id || !id || busyViewerProvider) return;
+
+    const nextIds = viewerShortlistIds.has(id)
+      ? Array.from(viewerShortlistIds).filter((value) => value !== id)
+      : [...Array.from(viewerShortlistIds), id];
+
+    setBusyViewerProvider(id);
+    setError("");
+    try {
+      const response = await fetch(`/api/pia/pilots/${encodeURIComponent(String(pilot.id))}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          event_type: "VIEWER_SHORTLIST_UPDATED",
+          provider_ids: nextIds,
+        }),
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload?.detail || "Unable to update viewer shortlist");
+      }
+
+      setPilots((current) =>
+        current.map((item) =>
+          String(item?.id) === String(pilot.id)
+            ? { ...item, viewer_shortlist_provider_ids: nextIds }
+            : item,
+        ),
+      );
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Unable to update viewer shortlist");
+    } finally {
+      setBusyViewerProvider("");
+    }
+  }
+
   function togglePciaSelection(id: string) {
     setError("");
     setBatchMessage("");
@@ -577,7 +633,7 @@ export function PiaWorkspace() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           pilot_id: pilot.id,
-          limit: Math.min(shortlist.length || 20, 20),
+          limit: Math.min(agentShortlist.length || 20, 20),
           people: false,
         }),
       });
@@ -634,7 +690,7 @@ export function PiaWorkspace() {
         </div>
       </div>
 
-      <div className="mx-auto grid max-w-[1720px] gap-5 px-6 py-6 xl:grid-cols-[minmax(0,1fr)_620px]">
+      <div className="mx-auto max-w-[1720px] px-4 py-6 sm:px-6">
         <section className="min-w-0 space-y-5">
           {error ? (
             <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
@@ -653,7 +709,7 @@ export function PiaWorkspace() {
 
           <div className="grid gap-3 md:grid-cols-4">
             <Metric label="Complete universe" value={universe.length} detail="providers retained" />
-            <Metric label="Agent shortlist" value={shortlist.length} detail="prioritized providers" />
+            <Metric label="Agent shortlist" value={agentShortlist.length} detail="prioritized providers" />
             <Metric
               label="PCIA enriched"
               value={universe.filter((row: JsonRecord) => ["PARTIAL", "COMPLETE"].includes(contactView(row).status)).length}
@@ -666,7 +722,8 @@ export function PiaWorkspace() {
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-5 py-4">
               <div className="flex gap-2">
                 {[
-                  ["shortlist", "Agent shortlist"],
+                  ["agent", "Agent shortlist"],
+                  ["viewer", `Viewer shortlist (${viewerShortlist.length})`],
                   ["universe", "Provider universe"],
                   ["requirement", "Requirement"],
                 ].map(([key, label]) => (
@@ -682,7 +739,7 @@ export function PiaWorkspace() {
                 ))}
               </div>
               <div className="flex flex-wrap items-center gap-2">
-                {view === "shortlist" && shortlist.length ? (
+                {view === "agent" && agentShortlist.length ? (
                   <>
                     <button
                       onClick={() => void enrichShortlist()}
@@ -692,13 +749,23 @@ export function PiaWorkspace() {
                       Enrich shortlist contacts
                     </button>
                     <button
-                      onClick={() => void startDeepBatch(shortlist.map((row: JsonRecord) => providerId(row)))}
+                      onClick={() => void startDeepBatch(agentShortlist.map((row: JsonRecord) => providerId(row)))}
                       disabled={busyShortlist || batchProviderIds.length > 0}
                       className="rounded-lg bg-blue-700 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-800 disabled:opacity-50"
                     >
-                      {batchProviderIds.length ? "Deep PCIA running…" : `Deep PCIA all shortlist (${Math.min(shortlist.length, 20)})`}
+                      {batchProviderIds.length ? "Deep PCIA running…" : `Deep PCIA agent shortlist (${Math.min(agentShortlist.length, 20)})`}
                     </button>
                   </>
+                ) : null}
+
+                {view === "viewer" && viewerShortlist.length ? (
+                  <button
+                    onClick={() => void startDeepBatch(viewerShortlist.map((row: JsonRecord) => providerId(row)))}
+                    disabled={busyShortlist || batchProviderIds.length > 0}
+                    className="rounded-lg bg-blue-700 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-800 disabled:opacity-50"
+                  >
+                    {batchProviderIds.length ? "Deep PCIA running…" : `Deep PCIA viewer shortlist (${Math.min(viewerShortlist.length, 20)})`}
+                  </button>
                 ) : null}
 
                 {view === "universe" ? (
@@ -744,21 +811,22 @@ export function PiaWorkspace() {
                 </div>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[780px] border-collapse">
+              <div className="w-full overflow-hidden">
+                <table className="w-full table-fixed border-collapse">
                   <thead className="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                     <tr>
-                      <th className="px-5 py-3">Select</th>
-                      <th className="px-5 py-3">Rank</th>
-                      <th className="px-5 py-3">Provider</th>
-                      <th className="px-5 py-3">Website</th>
-                      <th className="px-5 py-3">Evidence</th>
-                      <th className="px-5 py-3">PCIA</th>
+                      <th className="w-[72px] px-3 py-3 text-center">Viewer</th>
+                      <th className="w-[78px] px-3 py-3 text-center">Deep PCIA</th>
+                      <th className="w-[64px] px-3 py-3">Rank</th>
+                      <th className="px-4 py-3">Provider</th>
+                      <th className="w-[120px] px-3 py-3">Website</th>
+                      <th className="hidden w-[110px] px-3 py-3 lg:table-cell">Evidence</th>
+                      <th className="w-[190px] px-3 py-3">Status</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {loading ? (
-                      <tr><td className="px-5 py-10 text-sm text-slate-500" colSpan={6}>Loading saved PIA runs…</td></tr>
+                      <tr><td className="px-5 py-10 text-sm text-slate-500" colSpan={7}>Loading saved PIA runs…</td></tr>
                     ) : rows.length ? (
                       rows.map((row: JsonRecord, index: number) => {
                         const id = providerId(row);
@@ -776,10 +844,23 @@ export function PiaWorkspace() {
                               selectedProviderId === id ? "bg-blue-50" : "bg-white"
                             }`}
                           >
-                            <td className="px-5 py-4">
+                            <td className="px-3 py-4 text-center">
                               <input
                                 type="checkbox"
-                                aria-label={`Select ${providerName(row)} for deep PCIA`}
+                                aria-label={`${viewerShortlistIds.has(id) ? "Remove" : "Add"} ${providerName(row)} ${viewerShortlistIds.has(id) ? "from" : "to"} viewer shortlist`}
+                                title={viewerShortlistIds.has(id) ? "Remove from viewer shortlist" : "Add to viewer shortlist"}
+                                checked={viewerShortlistIds.has(id)}
+                                disabled={busyViewerProvider === id}
+                                onClick={(event) => event.stopPropagation()}
+                                onChange={() => void toggleViewerShortlist(id)}
+                                className="h-4 w-4 rounded border-slate-300"
+                              />
+                            </td>
+                            <td className="px-3 py-4 text-center">
+                              <input
+                                type="checkbox"
+                                aria-label={`Select ${providerName(row)} for deep PCIA batch`}
+                                title="Select for Deep PCIA batch"
                                 checked={pciaSelectedIds.includes(id)}
                                 disabled={
                                   batchProviderIds.length > 0 ||
@@ -790,14 +871,14 @@ export function PiaWorkspace() {
                                 className="h-4 w-4 rounded border-slate-300"
                               />
                             </td>
-                            <td className="px-5 py-4 text-sm font-semibold text-slate-500">{rankOf(row, index)}</td>
-                            <td className="px-5 py-4">
-                              <div className="font-semibold text-slate-900">{providerName(row)}</div>
+                            <td className="px-3 py-4 text-sm font-semibold text-slate-500">{rankOf(row, index)}</td>
+                            <td className="min-w-0 px-4 py-4">
+                              <div className="break-words font-semibold text-slate-900">{providerName(row)}</div>
                               <div className="mt-1 text-xs text-slate-500">
                                 {String(providerObject(row)?.country_code || "—")} · {String(providerObject(row)?.provider_type || "provider")}
                               </div>
                             </td>
-                            <td className="px-5 py-4 text-sm">
+                            <td className="px-3 py-4 text-sm">
                               {website ? (
                                 <a
                                   href={String(website)}
@@ -812,8 +893,8 @@ export function PiaWorkspace() {
                                 <span className="text-slate-400">Not resolved</span>
                               )}
                             </td>
-                            <td className="px-5 py-4 text-xs font-medium text-slate-600">{signalOf(row)}</td>
-                            <td className="px-5 py-4">
+                            <td className="hidden px-3 py-4 text-xs font-medium text-slate-600 lg:table-cell">{signalOf(row)}</td>
+                            <td className="px-3 py-4">
                               <div className="flex flex-wrap gap-1.5">
                                 <StatusBadge status={contactRow.status} />
                                 {batchPeopleStatus !== "NOT_STARTED" ? (
@@ -825,7 +906,7 @@ export function PiaWorkspace() {
                         );
                       })
                     ) : (
-                      <tr><td className="px-5 py-10 text-sm text-slate-500" colSpan={6}>No providers available in this view.</td></tr>
+                      <tr><td className="px-5 py-10 text-sm text-slate-500" colSpan={7}>No providers available in this view.</td></tr>
                     )}
                   </tbody>
                 </table>
@@ -834,13 +915,20 @@ export function PiaWorkspace() {
           </div>
         </section>
 
-        <aside className="xl:sticky xl:top-6 xl:self-start">
-          <div className="max-h-[calc(100vh-3rem)] overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
-            {selectedRow && contact ? (
+        {selectedRow && contact ? (
+          <>
+            <button
+              type="button"
+              aria-label="Close PCIA details"
+              onClick={() => setSelectedProviderId("")}
+              className="fixed inset-0 z-40 cursor-default bg-slate-950/20"
+            />
+            <aside className="fixed inset-y-0 right-0 z-50 w-full max-w-[640px] overflow-y-auto border-l border-slate-200 bg-white shadow-2xl">
+              <div className="min-h-full">
               <>
                 <div className="border-b border-slate-200 px-5 py-5">
                   <div className="flex items-start justify-between gap-3">
-                    <div>
+                    <div className="min-w-0">
                       <div className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-700">
                         PCIA people & engagement intelligence
                       </div>
@@ -855,6 +943,13 @@ export function PiaWorkspace() {
                         ) : null}
                       </div>
                     </div>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedProviderId("")}
+                      className="shrink-0 rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50"
+                    >
+                      Close
+                    </button>
                   </div>
 
                   <div className="mt-4 flex flex-wrap gap-2">
@@ -964,17 +1059,10 @@ export function PiaWorkspace() {
                 <DrawerSection title="Evidence & provenance" subtitle={`${evidenceUrls.length} source URLs captured`}>
                   <EvidenceLinks urls={evidenceUrls} />
                 </DrawerSection>
-              </>
-            ) : (
-              <div className="px-6 py-16 text-center">
-                <div className="text-sm font-semibold text-slate-700">Select a provider</div>
-                <p className="mt-2 text-sm leading-6 text-slate-500">
-                  Choose a provider from the shortlist or universe to inspect its PCIA contact intelligence.
-                </p>
               </div>
-            )}
-          </div>
-        </aside>
+            </aside>
+          </>
+        ) : null}
       </div>
     </main>
   );
