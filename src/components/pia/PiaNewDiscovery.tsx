@@ -5,6 +5,46 @@ import { useEffect, useMemo, useState } from "react";
 
 type JsonRecord = Record<string, any>;
 
+const MARKET_GROUPS = [
+  {
+    label: "North America",
+    markets: ["United States", "Canada", "Mexico"],
+  },
+  {
+    label: "United Kingdom & Europe",
+    markets: [
+      "United Kingdom", "Ireland", "Germany", "France", "Spain", "Italy",
+      "Netherlands", "Belgium", "Switzerland", "Sweden", "Denmark", "Norway",
+      "Finland", "Austria", "Poland", "Portugal", "Czechia", "Greece",
+    ],
+  },
+  {
+    label: "South Asia",
+    markets: ["India", "Bangladesh", "Sri Lanka", "Nepal", "Pakistan"],
+  },
+  {
+    label: "Southeast & East Asia",
+    markets: [
+      "Singapore", "Malaysia", "Thailand", "Indonesia", "Philippines", "Vietnam",
+      "Japan", "South Korea", "China", "Hong Kong", "Taiwan",
+    ],
+  },
+  {
+    label: "Middle East",
+    markets: [
+      "United Arab Emirates", "Saudi Arabia", "Qatar", "Israel", "Türkiye",
+    ],
+  },
+  {
+    label: "Australia & New Zealand",
+    markets: ["Australia", "New Zealand"],
+  },
+  {
+    label: "Latin America & Africa",
+    markets: ["Brazil", "Argentina", "Chile", "South Africa"],
+  },
+] as const;
+
 function formatElapsed(seconds: number) {
   const minutes = Math.floor(seconds / 60);
   const remainder = seconds % 60;
@@ -14,7 +54,7 @@ function formatElapsed(seconds: number) {
 export function PiaNewDiscovery() {
   const [title, setTitle] = useState("");
   const [disease, setDisease] = useState("");
-  const [country, setCountry] = useState("USA");
+  const [country, setCountry] = useState("United States");
   const [requirement, setRequirement] = useState("");
   const [shortlistSize, setShortlistSize] = useState(10);
   const [runId, setRunId] = useState("");
@@ -215,7 +255,7 @@ export function PiaNewDiscovery() {
             </div>
             <h1 className="mt-1 text-2xl font-semibold tracking-tight">New provider discovery</h1>
             <p className="mt-1 text-sm text-slate-600">
-              Start a fresh disease, cohort or healthcare-data discovery. This creates a new independent PIA run.
+              Discover and qualify healthcare-provider candidates across international markets for clinical-data and data-partnership opportunities.
             </p>
           </div>
           <Link
@@ -260,10 +300,15 @@ export function PiaNewDiscovery() {
                       }}
                       className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                     >
-                      <option value="USA">USA</option>
-                      <option value="India">India</option>
-                      <option value="United Kingdom">United Kingdom</option>
-                      <option value="Germany">Germany</option>
+                      {MARKET_GROUPS.map((group) => (
+                        <optgroup key={group.label} label={group.label}>
+                          {group.markets.map((market) => (
+                            <option key={market} value={market}>
+                              {market}
+                            </option>
+                          ))}
+                        </optgroup>
+                      ))}
                     </select>
                   </label>
                 </div>
