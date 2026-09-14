@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     }
 
     const upstream = await pciaGatewayRequest(
-      `/v1/pcia/pilots/${encodeURIComponent(pilotId)}/providers/${encodeURIComponent(providerId)}`,
+      `/v1/pcia/pilots/${encodeURIComponent(pilotId)}/providers/${providerId}`,
     );
     const { payload, status } = await proxyJson(upstream);
     return NextResponse.json(payload, { status });
