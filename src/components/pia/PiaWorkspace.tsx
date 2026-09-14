@@ -262,6 +262,21 @@ function textOrDash(value: unknown) {
   return "Not collected";
 }
 
+function peopleStatusOfRow(row: JsonRecord) {
+  const details = rowContactDetails(row);
+  return String(value(details?.people_status, "NOT_STARTED")).toUpperCase();
+}
+
+function deepPciaFinished(status: string) {
+  return [
+    "OUTREACH_READY",
+    "MULTI_SOURCE_VERIFIED",
+    "CANDIDATES_FOUND",
+    "NO_MATCH",
+    "FAILED",
+  ].includes(String(status).toUpperCase());
+}
+
 export function PiaWorkspace() {
   const [pilots, setPilots] = useState<JsonRecord[]>([]);
   const [selectedPilotId, setSelectedPilotId] = useState("");
@@ -270,13 +285,16 @@ export function PiaWorkspace() {
   const [loading, setLoading] = useState(true);
   const [busyProvider, setBusyProvider] = useState("");
   const [busyShortlist, setBusyShortlist] = useState(false);
+  const [pciaSelectedIds, setPciaSelectedIds] = useState<string[]>([]);
+  const [batchProviderIds, setBatchProviderIds] = useState<string[]>([]);
+  const [batchMessage, setBatchMessage] = useState("");
   const [providerIntel, setProviderIntel] = useState<PciaProviderIntel | null>(null);
   const [providerIntelLoading, setProviderIntelLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const loadPilots = useCallback(async () => {
-    setLoading(true);
-    setError("");
+  const loadPilots = useCallback(async (showLoading = true) => {
+    if (showLoading) setLoading(true);
+    if (showLoading) setError("");
     try {
       const response = await fetch("/api/pia/pilots", { cache: "no-store" });
       const payload = await response.json();
@@ -287,12 +305,12 @@ export function PiaWorkspace() {
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Unable to load PIA runs");
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    void loadPilots();
+    void loadPilots(true);
   }, [loadPilots]);
 
   const pilot = useMemo(
@@ -317,6 +335,34 @@ export function PiaWorkspace() {
     () => universe.filter((row: JsonRecord) => shortlistIds.has(providerId(row))),
     [universe, shortlistIds],
   );
+
+  useEffect(() => {
+    if (!batchProviderIds.length) return;
+    const timer = window.setInterval(() => {
+      void loadPilots(false);
+    }, 8000);
+    return () => window.clearInterval(timer);
+  }, [batchProviderIds.length, loadPilots]);
+
+  useEffect(() => {
+    if (!batchProviderIds.length || !universe.length) return;
+
+    const targetRows = batchProviderIds
+      .map((id) => universe.find((row: JsonRecord) => providerId(row) === id))
+      .filter(Boolean) as JsonRecord[];
+
+    if (targetRows.length !== batchProviderIds.length) return;
+    if (!targetRows.every((row) => deepPciaFinished(peopleStatusOfRow(row)))) return;
+
+    const failed = targetRows.filter((row) => peopleStatusOfRow(row) === "FAILED").length;
+    setBatchMessage(
+      failed
+        ? `Deep PCIA finished: ${targetRows.length - failed} completed, ${failed} failed.`
+        : `Deep PCIA finished for ${targetRows.length} provider${targetRows.length === 1 ? "" : "s"}.`,
+    );
+    setBatchProviderIds([]);
+    void loadPilots(false);
+  }, [batchProviderIds, universe, loadPilots]);
 
   const rows = view === "universe" ? universe : shortlist;
   const selectedRow = useMemo(
@@ -423,6 +469,60 @@ export function PiaWorkspace() {
     }
   }
 
+  function togglePciaSelection(id: string) {
+    setError("");
+    setBatchMessage("");
+    setPciaSelectedIds((current) => {
+      if (current.includes(id)) return current.filter((value) => value !== id);
+      if (current.length >= 20) {
+        setError("Deep PCIA batch is limited to 20 selected providers.");
+        return current;
+      }
+      return [...current, id];
+    });
+  }
+
+  async function startDeepBatch(providerIds: string[]) {
+    if (!pilot?.id) return;
+    const ids = Array.from(new Set(providerIds.filter(Boolean))).slice(0, 20);
+    if (!ids.length) {
+      setError("Select at least one provider for deep PCIA.");
+      return;
+    }
+
+    setBusyShortlist(true);
+    setError("");
+    setBatchMessage("");
+    try {
+      const response = await fetch("/api/pcia/enrich-batch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          pilot_id: pilot.id,
+          provider_ids: ids,
+          people: true,
+          force: false,
+        }),
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload?.detail || "Unable to queue deep PCIA batch");
+      }
+
+      const queued = Array.isArray(payload?.provider_ids) ? payload.provider_ids.map(String) : ids;
+      setBatchProviderIds(queued);
+      setBatchMessage(
+        `Deep PCIA queued for ${queued.length} provider${queued.length === 1 ? "" : "s"}. Completed intelligence will be reused; only missing people intelligence will run.`,
+      );
+      setPciaSelectedIds([]);
+      await loadPilots(false);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Unable to queue deep PCIA batch");
+    } finally {
+      setBusyShortlist(false);
+    }
+  }
+
   async function enrichShortlist() {
     if (!pilot?.id) return;
     setBusyShortlist(true);
@@ -467,6 +567,9 @@ export function PiaWorkspace() {
               onChange={(event) => {
                 setSelectedPilotId(event.target.value);
                 setSelectedProviderId("");
+                setPciaSelectedIds([]);
+                setBatchProviderIds([]);
+                setBatchMessage("");
               }}
               className="min-w-72 rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm shadow-sm"
             >
@@ -491,6 +594,15 @@ export function PiaWorkspace() {
           {error ? (
             <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
               {error}
+            </div>
+          ) : null}
+
+          {batchMessage ? (
+            <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">
+              {batchMessage}
+              {batchProviderIds.length ? (
+                <span className="ml-2 font-semibold">Refreshing progress every 8 seconds.</span>
+              ) : null}
             </div>
           ) : null}
 
@@ -524,15 +636,52 @@ export function PiaWorkspace() {
                   </button>
                 ))}
               </div>
-              {view === "shortlist" && shortlist.length ? (
-                <button
-                  onClick={() => void enrichShortlist()}
-                  disabled={busyShortlist}
-                  className="rounded-lg bg-blue-700 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-800 disabled:opacity-50"
-                >
-                  {busyShortlist ? "Enriching contacts…" : "Enrich shortlist contacts"}
-                </button>
-              ) : null}
+              <div className="flex flex-wrap items-center gap-2">
+                {view === "shortlist" && shortlist.length ? (
+                  <>
+                    <button
+                      onClick={() => void enrichShortlist()}
+                      disabled={busyShortlist || batchProviderIds.length > 0}
+                      className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                    >
+                      Enrich shortlist contacts
+                    </button>
+                    <button
+                      onClick={() => void startDeepBatch(shortlist.map((row: JsonRecord) => providerId(row)))}
+                      disabled={busyShortlist || batchProviderIds.length > 0}
+                      className="rounded-lg bg-blue-700 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-800 disabled:opacity-50"
+                    >
+                      {batchProviderIds.length ? "Deep PCIA running…" : `Deep PCIA all shortlist (${Math.min(shortlist.length, 20)})`}
+                    </button>
+                  </>
+                ) : null}
+
+                {view === "universe" ? (
+                  <>
+                    <span className="text-xs font-medium text-slate-500">
+                      {pciaSelectedIds.length}/20 selected
+                    </span>
+                    {pciaSelectedIds.length ? (
+                      <button
+                        onClick={() => setPciaSelectedIds([])}
+                        disabled={batchProviderIds.length > 0}
+                        className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                      >
+                        Clear
+                      </button>
+                    ) : null}
+                    <button
+                      onClick={() => void startDeepBatch(pciaSelectedIds)}
+                      disabled={!pciaSelectedIds.length || busyShortlist || batchProviderIds.length > 0}
+                      className="rounded-lg bg-blue-700 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-800 disabled:opacity-50"
+                    >
+                      {batchProviderIds.length
+                        ? "Deep PCIA running…"
+                        : `Deep PCIA selected (${pciaSelectedIds.length})`}
+                    </button>
+                  </>
+                ) : null}
+              </div>
             </div>
 
             {view === "requirement" ? (
@@ -554,6 +703,7 @@ export function PiaWorkspace() {
                 <table className="w-full min-w-[780px] border-collapse">
                   <thead className="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                     <tr>
+                      <th className="px-5 py-3">Select</th>
                       <th className="px-5 py-3">Rank</th>
                       <th className="px-5 py-3">Provider</th>
                       <th className="px-5 py-3">Website</th>
@@ -563,7 +713,7 @@ export function PiaWorkspace() {
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {loading ? (
-                      <tr><td className="px-5 py-10 text-sm text-slate-500" colSpan={5}>Loading saved PIA runs…</td></tr>
+                      <tr><td className="px-5 py-10 text-sm text-slate-500" colSpan={6}>Loading saved PIA runs…</td></tr>
                     ) : rows.length ? (
                       rows.map((row: JsonRecord, index: number) => {
                         const id = providerId(row);
@@ -577,6 +727,20 @@ export function PiaWorkspace() {
                               selectedProviderId === id ? "bg-blue-50" : "bg-white"
                             }`}
                           >
+                            <td className="px-5 py-4">
+                              <input
+                                type="checkbox"
+                                aria-label={`Select ${providerName(row)} for deep PCIA`}
+                                checked={pciaSelectedIds.includes(id)}
+                                disabled={
+                                  batchProviderIds.length > 0 ||
+                                  (!pciaSelectedIds.includes(id) && pciaSelectedIds.length >= 20)
+                                }
+                                onClick={(event) => event.stopPropagation()}
+                                onChange={() => togglePciaSelection(id)}
+                                className="h-4 w-4 rounded border-slate-300"
+                              />
+                            </td>
                             <td className="px-5 py-4 text-sm font-semibold text-slate-500">{rankOf(row, index)}</td>
                             <td className="px-5 py-4">
                               <div className="font-semibold text-slate-900">{providerName(row)}</div>
@@ -607,7 +771,7 @@ export function PiaWorkspace() {
                         );
                       })
                     ) : (
-                      <tr><td className="px-5 py-10 text-sm text-slate-500" colSpan={5}>No providers available in this view.</td></tr>
+                      <tr><td className="px-5 py-10 text-sm text-slate-500" colSpan={6}>No providers available in this view.</td></tr>
                     )}
                   </tbody>
                 </table>
