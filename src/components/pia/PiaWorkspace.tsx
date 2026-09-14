@@ -295,15 +295,51 @@ export function PiaWorkspace() {
   const [providerIntelLoading, setProviderIntelLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const loadPilot = useCallback(async (pilotId: string, showLoading = false) => {
+    if (!pilotId) return;
+    if (showLoading) setLoading(true);
+    try {
+      const response = await fetch(
+        `/api/pia/pilots/${encodeURIComponent(pilotId)}`,
+        { cache: "no-store" },
+      );
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.detail || "Unable to load selected PIA run");
+      setPilots((current) => {
+        const next = current.filter((item) => String(item?.id) !== pilotId);
+        return [payload, ...next];
+      });
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Unable to load selected PIA run");
+    } finally {
+      if (showLoading) setLoading(false);
+    }
+  }, []);
+
   const loadPilots = useCallback(async (showLoading = true) => {
     if (showLoading) setLoading(true);
     if (showLoading) setError("");
     try {
-      const response = await fetch("/api/pia/pilots", { cache: "no-store" });
+      const response = await fetch("/api/pia/pilot-index", { cache: "no-store" });
       const payload = await response.json();
-      if (!response.ok) throw new Error(payload?.detail || "Unable to load PIA runs");
+      if (!response.ok) throw new Error(payload?.detail || "Unable to load PIA run index");
       const items = Array.isArray(payload?.pilots) ? payload.pilots : [];
-      setPilots(items);
+      setPilots((current) =>
+        items.map((item: JsonRecord) => {
+          const existing = current.find((row) => String(row?.id) === String(item?.id));
+          if (existing && Array.isArray(existing?.provider_universe)) {
+            return {
+              ...item,
+              ...existing,
+              status: item.status,
+              stage: item.stage,
+              failure: item.failure,
+              updated_at: item.updated_at,
+            };
+          }
+          return item;
+        }),
+      );
       setSelectedPilotId((current) => current || String(items[0]?.id || ""));
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Unable to load PIA runs");
@@ -315,6 +351,16 @@ export function PiaWorkspace() {
   useEffect(() => {
     void loadPilots(true);
   }, [loadPilots]);
+
+  useEffect(() => {
+    if (!selectedPilotId) return;
+    void loadPilot(selectedPilotId, true);
+  }, [selectedPilotId, loadPilot]);
+
+  const refreshWorkspace = useCallback(async () => {
+    await loadPilots(false);
+    if (selectedPilotId) await loadPilot(selectedPilotId, false);
+  }, [loadPilots, loadPilot, selectedPilotId]);
 
   const pilot = useMemo(
     () => pilots.find((item) => String(item?.id) === selectedPilotId) || pilots[0],
@@ -394,8 +440,8 @@ export function PiaWorkspace() {
               ? `Deep PCIA finished: ${batchProviderIds.length - failed} completed, ${failed} failed.`
               : `Deep PCIA finished for ${batchProviderIds.length} provider${batchProviderIds.length === 1 ? "" : "s"}.`,
           );
-          // Refresh the large saved PIA run once, only after batch writes are done.
-          await loadPilots(false);
+          // Refresh only the selected run once after batch writes are done.
+          if (selectedPilotId) await loadPilot(selectedPilotId, false);
           return;
         }
       } catch {
@@ -414,7 +460,7 @@ export function PiaWorkspace() {
       cancelled = true;
       if (timer) window.clearTimeout(timer);
     };
-  }, [batchProviderIds, loadPilots]);
+  }, [batchProviderIds, loadPilot, selectedPilotId]);
 
   const rows =
     view === "universe"
@@ -518,7 +564,7 @@ export function PiaWorkspace() {
       const payload = await response.json();
       if (!response.ok) throw new Error(payload?.detail || payload?.error || "PCIA enrichment failed");
       setProviderIntel(payload);
-      await loadPilots();
+      if (pilot?.id) await loadPilot(String(pilot.id), false);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "PCIA enrichment failed");
     } finally {
@@ -640,7 +686,7 @@ export function PiaWorkspace() {
       });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload?.detail || "PCIA shortlist enrichment failed");
-      await loadPilots();
+      if (pilot?.id) await loadPilot(String(pilot.id), false);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "PCIA shortlist enrichment failed");
     } finally {
@@ -688,7 +734,7 @@ export function PiaWorkspace() {
               ))}
             </select>
             <button
-              onClick={() => void loadPilots()}
+              onClick={() => void refreshWorkspace()}
               className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium hover:bg-slate-50"
             >
               Refresh
