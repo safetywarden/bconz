@@ -1264,7 +1264,9 @@ export function PiaWorkspace() {
                 </DrawerSection>
 
                 <DrawerSection title="Recommended engagement pathway">
-                  {engagement?.recommended_first_contact ||
+                  {!hasContactablePerson && !contact?.email && !contact?.phone ? (
+                    <EmptyHint text="Engagement route withheld: no provenance-gated personal contact or institutional contact route is currently available." />
+                  ) : engagement?.recommended_first_contact ||
                   engagement?.best_channel ||
                   engagement?.recommended_sequence?.length ? (
                     <div className="space-y-4 text-sm">
@@ -1488,23 +1490,29 @@ function PersonCard({ person, rank }: { person: PciaPerson; rank: number }) {
             <p className="mt-3 text-xs leading-5 text-slate-700">{person.relevance_reason}</p>
           ) : null}
 
-          <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs">
-            {person.professional_email ? (
-              <a href={`mailto:${person.professional_email}`} className="font-medium text-blue-700 hover:underline">
-                Email / route ↗
-              </a>
-            ) : null}
-            {person.professional_phone ? (
-              <a href={`tel:${person.professional_phone}`} className="font-medium text-blue-700 hover:underline">
-                Phone ↗
-              </a>
-            ) : null}
-            {person.linkedin_url ? (
-              <a href={person.linkedin_url} target="_blank" rel="noreferrer" className="font-medium text-blue-700 hover:underline">
-                LinkedIn ↗
-              </a>
-            ) : null}
-          </div>
+          {person.contactable ? (
+            <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs">
+              {person.professional_email ? (
+                <a href={`mailto:${person.professional_email}`} className="font-medium text-blue-700 hover:underline">
+                  Email / route ↗
+                </a>
+              ) : null}
+              {person.professional_phone ? (
+                <a href={`tel:${person.professional_phone}`} className="font-medium text-blue-700 hover:underline">
+                  Phone ↗
+                </a>
+              ) : null}
+              {person.linkedin_url ? (
+                <a href={person.linkedin_url} target="_blank" rel="noreferrer" className="font-medium text-blue-700 hover:underline">
+                  LinkedIn ↗
+                </a>
+              ) : null}
+            </div>
+          ) : (
+            <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] leading-5 text-amber-900">
+              Research-only person record. Personal contact routes are hidden until provenance and lawful-basis controls pass.
+            </div>
+          )}
 
           {sources.length ? (
             <details className="mt-3">
