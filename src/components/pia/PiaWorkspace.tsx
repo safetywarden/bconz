@@ -285,6 +285,30 @@ function evidenceConfidence(row: JsonRecord | undefined) {
   return scoreNumber(scoreDimensions(row)?.evidence_confidence?.score);
 }
 
+function dimensionScore(row: JsonRecord | undefined, dimension: string) {
+  return scoreNumber(scoreDimensions(row)?.[dimension]?.score);
+}
+
+function dimensionEvidenceState(row: JsonRecord | undefined, dimension: string) {
+  return String(scoreDimensions(row)?.[dimension]?.evidence_state || "NO_PUBLIC_SIGNAL");
+}
+
+function headlineEvidenceState(row: JsonRecord | undefined, field: string) {
+  return String(headlineScores(row)?.evidence_states?.[field] || "NO_PUBLIC_SIGNAL");
+}
+
+function evidenceStateLabel(state: unknown) {
+  const value = String(state || "NO_PUBLIC_SIGNAL").toUpperCase();
+  if (value === "EVIDENCED") return "Evidenced";
+  if (value === "WEAK_SIGNAL") return "Weak signal";
+  return "No public signal";
+}
+
+function sourceFamilyCount(row: JsonRecord | undefined) {
+  const provider = row ? providerObject(row) : {};
+  return Number(provider?.evidence_summary?.independent_source_families || 0);
+}
+
 function classificationOf(row: JsonRecord | undefined) {
   return String(scorecardOf(row)?.classification || "Qualification pending");
 }
@@ -994,13 +1018,13 @@ export function PiaWorkspace() {
                               </div>
                               <div className="mt-2 flex flex-wrap gap-1.5 text-[10px] font-semibold">
                                 <span className="rounded-full bg-blue-50 px-2 py-1 text-blue-800">
-                                  Asset {assetPotential(row) ?? "—"}
+                                  Data {dimensionScore(row, "data_richness") ?? evidenceStateLabel(dimensionEvidenceState(row, "data_richness"))}
                                 </span>
                                 <span className="rounded-full bg-slate-100 px-2 py-1 text-slate-700">
-                                  Readiness {currentReadiness(row) ?? "—"}
+                                  Research {dimensionScore(row, "research_readiness") ?? evidenceStateLabel(dimensionEvidenceState(row, "research_readiness"))}
                                 </span>
                                 <span className="rounded-full bg-violet-50 px-2 py-1 text-violet-800">
-                                  Enablement {partnershipPotential(row) ?? "—"}
+                                  Readiness {evidenceStateLabel(dimensionEvidenceState(row, "current_data_readiness"))}
                                 </span>
                               </div>
                             </td>
@@ -1020,8 +1044,10 @@ export function PiaWorkspace() {
                               )}
                             </td>
                             <td className="hidden px-3 py-4 text-xs font-medium text-slate-600 lg:table-cell">
-                              <div>Confidence {evidenceConfidence(row) ?? "—"}</div>
-                              <div className="mt-1 text-[10px] font-normal text-slate-400">{signalOf(row)}</div>
+                              <div>Evidence {evidenceStateLabel(dimensionEvidenceState(row, "evidence_confidence"))}</div>
+                              <div className="mt-1 text-[10px] font-normal text-slate-400">
+                                {sourceFamilyCount(row)} source {sourceFamilyCount(row) === 1 ? "family" : "families"} · {signalOf(row)}
+                              </div>
                             </td>
                             <td className="px-3 py-4">
                               <div className="mb-2 text-[10px] font-semibold leading-4 text-slate-700">
@@ -1119,10 +1145,26 @@ export function PiaWorkspace() {
                   subtitle="Public-evidence qualification — not a claim that a dataset or partnership is already available."
                 >
                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                    <MiniScore label="Asset potential" value={assetPotential(selectedRow)} />
-                    <MiniScore label="Current readiness" value={currentReadiness(selectedRow)} />
-                    <MiniScore label="Enablement" value={partnershipPotential(selectedRow)} />
-                    <MiniScore label="Evidence confidence" value={evidenceConfidence(selectedRow)} />
+                    <MiniScore
+                      label="Data richness"
+                      value={dimensionScore(selectedRow, "data_richness")}
+                      state={dimensionEvidenceState(selectedRow, "data_richness")}
+                    />
+                    <MiniScore
+                      label="Research readiness"
+                      value={dimensionScore(selectedRow, "research_readiness")}
+                      state={dimensionEvidenceState(selectedRow, "research_readiness")}
+                    />
+                    <MiniScore
+                      label="Current readiness"
+                      value={currentReadiness(selectedRow)}
+                      state={dimensionEvidenceState(selectedRow, "current_data_readiness")}
+                    />
+                    <MiniScore
+                      label="Evidence"
+                      value={null}
+                      state={dimensionEvidenceState(selectedRow, "evidence_confidence")}
+                    />
                   </div>
                   <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3">
                     <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
@@ -1317,12 +1359,24 @@ function ContactRow({
 }
 
 
-function MiniScore({ label, value }: { label: string; value: number | null }) {
+function MiniScore({
+  label,
+  value,
+  state,
+}: {
+  label: string;
+  value: number | null;
+  state?: string;
+}) {
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-3">
       <div className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">{label}</div>
-      <div className="mt-1 text-xl font-semibold text-slate-900">{value ?? "—"}</div>
-      <div className="text-[10px] text-slate-400">/100</div>
+      <div className={`mt-1 font-semibold text-slate-900 ${value !== null ? "text-xl" : "text-sm"}`}>
+        {value !== null ? value : evidenceStateLabel(state)}
+      </div>
+      <div className="text-[10px] text-slate-400">
+        {value !== null ? "/100 · public evidence" : "Evidence state"}
+      </div>
     </div>
   );
 }
