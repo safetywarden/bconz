@@ -35,6 +35,10 @@ type PciaPerson = {
   relevance_reason?: string | null;
   source_urls?: string[];
   metadata?: JsonRecord;
+  provenance?: JsonRecord[];
+  suppressed?: boolean;
+  privacy_state?: string;
+  contactable?: boolean;
   last_verified?: string | null;
 };
 
@@ -112,6 +116,8 @@ function contactView(row: JsonRecord): ContactView {
     row?.contactDetails ||
     row?.contact ||
     {};
+  const privacyGated =
+    details?.privacy_control?.personal_contact_gate === "ENFORCED";
 
   return {
     status: String(
@@ -141,15 +147,17 @@ function contactView(row: JsonRecord): ContactView {
       row?.postalCode,
       details?.postal_code,
     ),
-    phone: value(provider?.phone, row?.phone, details?.phone),
-    email: value(provider?.email, row?.email, details?.email),
-    contactPerson: value(
-      provider?.contact_person,
-      provider?.contactPerson,
-      row?.contact_person,
-      row?.contactPerson,
-      details?.contact_person,
-    ),
+    phone: privacyGated ? value(details?.phone, provider?.phone, row?.phone) : null,
+    email: privacyGated ? value(details?.email, provider?.email, row?.email) : null,
+    contactPerson: privacyGated
+      ? value(
+          details?.contact_person,
+          provider?.contact_person,
+          provider?.contactPerson,
+          row?.contact_person,
+          row?.contactPerson,
+        )
+      : null,
     roleDepartment: value(
       provider?.role_department,
       provider?.roleDepartment,
@@ -572,25 +580,48 @@ export function PiaWorkspace() {
             : []) as PciaPerson[];
 
     const seen = new Set<string>();
-    return source.filter((person) => {
-      const key = canonicalPersonName(String(person.person_name || ""));
-      if (!key || seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
+    return source
+      .filter((person) => {
+        const key = canonicalPersonName(String(person.person_name || ""));
+        if (!key || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      })
+      .map((person) => {
+        const contactable = person.contactable === true && person.suppressed !== true;
+        return {
+          ...person,
+          contactable,
+          privacy_state:
+            person.privacy_state ||
+            (contactable ? "CONTACTABLE_PROVENANCE_VALID" : "UNUSABLE_NO_PROVENANCE"),
+          linkedin_url: contactable ? person.linkedin_url : null,
+          professional_email: contactable ? person.professional_email : null,
+          professional_phone: contactable ? person.professional_phone : null,
+          status:
+            !contactable && String(person.status || "").toUpperCase() === "OUTREACH_READY"
+              ? "ROLE_MATCHED"
+              : person.status,
+        };
+      });
   }, [providerIntel, selectedRowDetails]);
   const engagement = (
     providerIntel?.contact_details?.engagement_pathway ||
     selectedRowDetails?.engagement_pathway ||
     {}
   ) as EngagementPathway;
-  const peopleStatus = String(
+  const hasContactablePerson = people.some((person) => person.contactable === true);
+  const rawPeopleStatus = String(
     value(
       providerIntel?.contact_details?.people_status,
       selectedRowDetails?.people_status,
       people.length ? "CANDIDATES_FOUND" : "NOT_STARTED",
     ),
   );
+  const peopleStatus =
+    rawPeopleStatus.toUpperCase() === "OUTREACH_READY" && !hasContactablePerson
+      ? "RESEARCH_ONLY"
+      : rawPeopleStatus;
   const evidenceUrls = uniqueUrls(
     contact?.contactSource,
     ...people.map((person) => person.source_urls || []),
