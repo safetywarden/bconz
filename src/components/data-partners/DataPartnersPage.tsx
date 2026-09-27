@@ -324,7 +324,7 @@ export function DataPartnersPage() {
                 and identifier columns. It blocks network use and writes only aggregate counts, which you review
                 before deciding whether to share.
               </p>
-              <a href="/platform#harm" className="mt-5 inline-flex text-sm font-semibold text-slate-950 underline underline-offset-4">About HARM</a>
+              <a href="/platform/harm" className="mt-5 inline-flex text-sm font-semibold text-slate-950 underline underline-offset-4">Healthcare data readiness assessment</a>
             </div>
             <div className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm">
               <p className="text-sm font-semibold uppercase tracking-[0.24em] text-teal-600">DIA demand intelligence</p>
@@ -333,7 +333,7 @@ export function DataPartnersPage() {
                 DIA matches your dataset&apos;s profile against the data gaps research teams state in their own papers,
                 grants and trials, and shows which of their needs your data meets — and which it does not.
               </p>
-              <a href="/platform#dia" className="mt-5 inline-flex text-sm font-semibold text-slate-950 underline underline-offset-4">About DIA</a>
+              <a href="/platform/dia" className="mt-5 inline-flex text-sm font-semibold text-slate-950 underline underline-offset-4">Healthcare data monetization with DIA</a>
             </div>
           </div>
         </Container>

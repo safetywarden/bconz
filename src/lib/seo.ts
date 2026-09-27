@@ -14,6 +14,9 @@ export type PublicRoute =
   | "/responsible-ai-principles"
   | "/solutions"
   | "/platform"
+  | "/platform/harm"
+  | "/platform/pia"
+  | "/platform/dia"
   | "/insights";
 
 export type PageSeo = {
@@ -161,15 +164,54 @@ export const pageSeo: Record<PublicRoute, PageSeo> = {
   },
   "/platform": {
     path: "/platform",
-    title: "Healthcare Data Intelligence Platform: HARM, PIA and DIA",
+    title: "Real-World Data Platform for Research and AI",
     description:
-      "BCONZ platform for healthcare data partnerships: HARM data readiness assessment, PIA provider intelligence and DIA demand intelligence matching research needs to datasets.",
+      "Real-world data partnerships built on evidence: assess data readiness (HARM), select sites and partners (PIA) and match datasets to research demand (DIA).",
     keywords: [
-      "healthcare data readiness assessment",
-      "provider intelligence",
-      "research demand intelligence",
-      "dataset matching",
-      "real world data partnerships",
+      "real world data platform",
+      "real world data companies",
+      "real world data sources",
+      "healthcare data for AI",
+      "healthcare data partnerships",
+    ],
+  },
+  "/platform/harm": {
+    path: "/platform/harm",
+    title: "Healthcare Data Readiness Assessment for AI",
+    description:
+      "Data readiness assessment for hospitals and labs: check patients, follow-up, coding and identifiers for research and AI, read-only, without data leaving.",
+    keywords: [
+      "data readiness assessment",
+      "data readiness assessment for AI",
+      "healthcare data readiness",
+      "data readiness checklist",
+      "data governance readiness assessment",
+    ],
+  },
+  "/platform/pia": {
+    path: "/platform/pia",
+    title: "Clinical Trial Site Selection & Data Partners",
+    description:
+      "Evidence-led clinical trial site selection and data partner identification from public trial and publication evidence, with unknowns reported as unknown.",
+    keywords: [
+      "clinical trial site selection",
+      "site selection criteria for clinical trials",
+      "clinical trial feasibility assessment",
+      "patient cohort identification",
+      "clinical trial site networks",
+    ],
+  },
+  "/platform/dia": {
+    path: "/platform/dia",
+    title: "Healthcare Data Monetization for Data Partners",
+    description:
+      "Healthcare data monetization: see who has published a need for data like yours and which needs your dataset meets, from papers, grants and trials.",
+    keywords: [
+      "healthcare data monetization",
+      "who buys healthcare data",
+      "sell medical data",
+      "healthcare data marketplace",
+      "real world evidence data sources",
     ],
   },
   "/insights": {

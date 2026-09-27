@@ -1,76 +1,11 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Icon, type IconName } from "@/components/ui/icon";
+import { Icon } from "@/components/ui/icon";
+import { products } from "@/content/platform";
 import { Heading, Label, Subheading } from "@/components/ui/typography";
 import { Container } from "@/components/layout/container";
 import { Section } from "@/components/layout/section";
-
-export const products: Array<{
-  id: string;
-  name: string;
-  full: string;
-  icon: IconName;
-  audience: string;
-  summary: string;
-  capabilities: string[];
-  outputs: string[];
-  cta: { label: string; href: string };
-}> = [
-  {
-    id: "harm",
-    name: "HARM",
-    full: "Healthcare data readiness assessment",
-    icon: "governance",
-    audience: "For hospitals, laboratories and data partners",
-    summary:
-      "Understand what your data can support before any partnership conversation. HARM runs inside your own environment, reads your exports, and produces a readiness report — without copying, moving or transmitting patient data.",
-    capabilities: [
-      "Runs read-only on your own systems; network use is blocked in the tool itself",
-      "Measures patients, visits and real longitudinal follow-up",
-      "Shows whether diagnoses, drugs and labs are coded or free text",
-      "Flags columns carrying identifiers that must be removed before research use",
-      "Assesses whether tables can map to a research data model",
-    ],
-    outputs: ["Readiness report", "Longitudinal depth", "Coding and identifier review", "Cohort floor counts"],
-    cta: { label: "Request a readiness assessment", href: "/data-partners" },
-  },
-  {
-    id: "pia",
-    name: "PIA",
-    full: "Provider Intelligence Agent",
-    icon: "partnership",
-    audience: "For life sciences and research teams seeking data partners",
-    summary:
-      "Find the hospitals, research sites and provider networks most likely to hold the data a study needs. PIA builds a universe of candidate organisations from public research and trial evidence, and says “unknown” rather than inventing what public evidence cannot show.",
-    capabilities: [
-      "Turns a data requirement into a candidate provider universe",
-      "Draws on public trial, publication and provider evidence",
-      "Ranks with stated rationale and visible evidence states",
-      "Reports unknowns as unknown — no imputed patient counts",
-    ],
-    outputs: ["Provider shortlist", "Evidence per provider", "Market and country view"],
-    cta: { label: "Discuss a provider search", href: "/contact" },
-  },
-  {
-    id: "dia",
-    name: "DIA",
-    full: "Demand Intelligence Agent",
-    icon: "research",
-    audience: "For data partners and BCONZ research programmes",
-    summary:
-      "Find who needs a dataset — from their own words. DIA reads the limitations researchers publish (“single-centre”, “external validation needed”, “under-represented populations”), active grants and live trials, then matches that stated demand against a specific dataset, need by need.",
-    capabilities: [
-      "Searches by disease, drug, biomarker, data type, population or organisation",
-      "Covers Europe PMC, ClinicalTrials.gov, NIH, EU CTIS and CORDIS, UK ISRCTN and UKRI",
-      "Matches each stated need to a dataset: met, not met, or not known",
-      "Scores that do not separate organisations are shown as flags, not numbers",
-      "Contacts limited to details published for contact, each with its source and lawful basis",
-    ],
-    outputs: ["Ranked demand with verbatim evidence", "Dataset-to-buyer fit", "Provenance-first contacts"],
-    cta: { label: "See demand for your data", href: "/contact" },
-  },
-];
 
 const flow = [
   { step: "Assess", product: "HARM", text: "A data partner learns what its data can support — patients, follow-up, coding, identifiers." },
@@ -108,6 +43,10 @@ const faqs = [
     a: "No. HARM runs on your own systems, blocks network use, and writes only aggregate counts to a report that you review before choosing whether to share it.",
   },
   {
+    q: "What are the main real-world data sources?",
+    a: "Real-world data comes from electronic health records, claims and billing data, disease registries, laboratory and genomic results, imaging, and patient-reported or device data. BCONZ works with partners holding these sources under governed, institution-led agreements.",
+  },
+  {
     q: "Where does DIA's demand evidence come from?",
     a: "Public sources only: published limitations in research papers, active grants from NIH, the European Commission and UKRI, and live trials in ClinicalTrials.gov, the EU Clinical Trials Information System and ISRCTN.",
   },
@@ -116,6 +55,8 @@ const faqs = [
     a: "DIA's contact layer only records details that were published so people could be contacted — such as a paper's corresponding author or a trial's listed study contact — together with the source and the lawful basis for using it.",
   },
 ];
+
+export { faqs as platformFaqs };
 
 export function PlatformPage() {
   return (
@@ -126,12 +67,20 @@ export function PlatformPage() {
             <div className="max-w-2xl space-y-6">
               <p className="text-sm font-semibold uppercase tracking-[0.3em] text-teal-600">The BCONZ platform</p>
               <h1 className="text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
-                Intelligence for every side of a healthcare data partnership
+                A real-world data platform built on evidence
               </h1>
               <p className="text-lg leading-8 text-slate-700">
-                BCONZ connects research demand with governed healthcare data. Three capabilities make that connection
-                evidence-led: HARM assesses what a dataset can support, PIA finds the providers who hold the data, and
-                DIA finds the organisations that have said — in their own published words — that they need it.
+                Many real-world data companies sell access to a fixed database. BCONZ connects research demand with
+                governed healthcare data from hospital, laboratory and research partners — and uses three capabilities to
+                make every step evidence-led.
+              </p>
+              <p className="text-base leading-7 text-slate-700">
+                <Link href="/platform/harm" className="font-semibold text-slate-950 underline underline-offset-4">HARM</Link> is a
+                data readiness assessment that shows what a dataset can support.{" "}
+                <Link href="/platform/pia" className="font-semibold text-slate-950 underline underline-offset-4">PIA</Link> brings
+                evidence to clinical trial site selection and data partner identification.{" "}
+                <Link href="/platform/dia" className="font-semibold text-slate-950 underline underline-offset-4">DIA</Link> finds
+                the organisations whose published papers, grants and trials say they need data like yours.
               </p>
               <div className="flex flex-col gap-4 sm:flex-row">
                 <Button variant="primary" size="large" as="a" href="/contact">
@@ -144,7 +93,7 @@ export function PlatformPage() {
             </div>
             <div className="grid gap-4">
               {products.map((p) => (
-                <a key={p.id} href={`#${p.id}`}
+                <a key={p.slug} href={`/platform/${p.slug}`}
                    className="flex items-start gap-4 rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400">
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-3xl bg-slate-950 text-white">
                     <Icon name={p.icon} className="h-6 w-6" />
@@ -164,7 +113,7 @@ export function PlatformPage() {
         <Container>
           <div className="mx-auto max-w-4xl space-y-6 text-center">
             <Label>How it fits together</Label>
-            <Heading>From a dataset to the research that needs it</Heading>
+            <Heading>From a real-world dataset to the research that needs it</Heading>
             <Subheading>
               Each capability answers one question in the partnership. Together they replace guesswork with evidence at every step.
             </Subheading>
@@ -188,11 +137,11 @@ export function PlatformPage() {
         <Container>
           <div id="products" className="mx-auto max-w-4xl scroll-mt-28 space-y-6 text-center">
             <Label>Capabilities</Label>
-            <Heading>Three capabilities, one standard of evidence</Heading>
+            <Heading>Data readiness, site selection and demand intelligence</Heading>
           </div>
           <div className="mt-12 space-y-10">
             {products.map((p, index) => (
-              <article key={p.id} id={p.id}
+              <article key={p.slug} id={p.slug}
                        className={`grid scroll-mt-28 gap-8 rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm lg:grid-cols-[1.05fr_0.95fr] ${index % 2 === 1 ? "lg:grid-flow-col-dense" : ""}`}>
                 <div className={index % 2 === 1 ? "lg:col-start-2" : ""}>
                   <div className="flex items-center gap-4">
@@ -205,9 +154,10 @@ export function PlatformPage() {
                     </div>
                   </div>
                   <p className="mt-2 text-sm font-semibold uppercase tracking-[0.2em] text-teal-600">{p.audience}</p>
-                  <p className="mt-5 text-base leading-7 text-slate-700">{p.summary}</p>
-                  <div className="mt-6">
-                    <Button variant="primary" size="normal" as="a" href={p.cta.href}>{p.cta.label}</Button>
+                  <p className="mt-5 text-base leading-7 text-slate-700">{p.intro[0]}</p>
+                  <div className="mt-6 flex flex-wrap gap-3">
+                    <Button variant="primary" size="normal" as="a" href={`/platform/${p.slug}`}>Learn more about {p.name}</Button>
+                    <Button variant="secondary" size="normal" as="a" href={p.cta.href}>{p.cta.label}</Button>
                   </div>
                 </div>
                 <div className={index % 2 === 1 ? "lg:col-start-1" : ""}>
