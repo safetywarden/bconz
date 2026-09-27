@@ -78,6 +78,34 @@ export function webPageJsonLd(path: PublicRoute, type: "WebPage" | "AboutPage" |
   };
 }
 
+export function faqJsonLd(faqs: Array<{ q: string; a: string }>) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((f) => ({
+      "@type": "Question",
+      name: f.q,
+      acceptedAnswer: { "@type": "Answer", text: f.a },
+    })),
+  };
+}
+
+export function serviceJsonLd(path: PublicRoute, name: string, serviceType: string, audience: string) {
+  const seo = getPageSeo(path);
+  return {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "@id": `${absoluteUrl(path)}#service`,
+    name,
+    serviceType,
+    description: seo.description,
+    url: absoluteUrl(path),
+    provider: { "@id": absoluteUrl("/#organization") },
+    audience: { "@type": "Audience", audienceType: audience },
+    areaServed: "Worldwide",
+  };
+}
+
 export function breadcrumbJsonLd(items: Array<{ name: string; path: PublicRoute }>) {
   return {
     "@context": "https://schema.org",

@@ -27,6 +27,9 @@ export function Hero() {
               </Button>
             </div>
             <div className="flex flex-wrap gap-x-5 gap-y-3 text-sm font-semibold text-slate-700">
+              <Link href="/platform" className="underline underline-offset-4 transition hover:text-slate-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400">
+                The BCONZ platform: HARM, PIA and DIA
+              </Link>
               <Link href="/solutions" className="underline underline-offset-4 transition hover:text-slate-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400">
                 Explore Solutions
               </Link>

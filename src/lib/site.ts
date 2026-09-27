@@ -10,6 +10,7 @@ export const metadataBase = new URL(seoSiteConfig.siteUrl);
 export const navigation: NavItem[] = [
   { title: "Home", href: "/" },
   { title: "Research Data", href: "/data" },
+  { title: "Platform", href: "/platform" },
   { title: "Solutions", href: "/solutions" },
   { title: "Data Partners", href: "/data-partners" },
   { title: "Insights", href: "/insights" },
@@ -20,6 +21,7 @@ export const navigation: NavItem[] = [
 export const footerLinks: FooterLink[] = [
   { title: "Company", href: "/about" },
   { title: "Data", href: "/data" },
+  { title: "Platform", href: "/platform" },
   { title: "Request Data", href: "/request-data" },
   { title: "Data Partners", href: "/data-partners" },
   { title: "Solutions", href: "/solutions" },
