@@ -221,6 +221,22 @@ export function SolutionsPage() {
         </Container>
       </Section>
 
+      <Section className="py-10 sm:py-12">
+        <Container>
+          <div className="flex flex-col gap-6 rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm lg:flex-row lg:items-center lg:justify-between">
+            <div className="max-w-3xl">
+              <p className="text-sm font-semibold uppercase tracking-[0.24em] text-teal-600">Powered by the BCONZ platform</p>
+              <p className="mt-3 text-lg leading-7 text-slate-700">
+                Every engagement is backed by evidence: <strong className="text-slate-950">PIA</strong> finds the providers
+                likely to hold the data, <strong className="text-slate-950">HARM</strong> confirms what a dataset can support, and{" "}
+                <strong className="text-slate-950">DIA</strong> maps where published research demand meets it.
+              </p>
+            </div>
+            <Button variant="secondary" size="normal" as="a" href="/platform">Explore the platform</Button>
+          </div>
+        </Container>
+      </Section>
+
       <Section>
         <Container>
           <div className="mx-auto max-w-4xl space-y-6 text-center">

@@ -1,5 +1,6 @@
 import { JsonLd } from "@/components/seo/JsonLd";
 import { Hero } from "@/components/hero/hero";
+import { PlatformSection } from "@/components/home/PlatformSection";
 import { createMetadata } from "@/lib/metadata";
 import { getPageSeo } from "@/lib/seo";
 import { breadcrumbJsonLd, webPageJsonLd } from "@/lib/seo/json-ld";
@@ -15,6 +16,7 @@ export default function Home() {
       <JsonLd id="ld-home-breadcrumb" data={breadcrumbJsonLd([{ name: "Home", path: "/" }])} />
       <main>
         <Hero />
+        <PlatformSection />
       </main>
     </>
   );

@@ -14,6 +14,7 @@ const sitemapConfig: Record<
   "/request-data": { changeFrequency: "monthly", priority: 0.9 },
   "/data-partners": { changeFrequency: "monthly", priority: 0.9 },
   "/solutions": { changeFrequency: "monthly", priority: 0.8 },
+  "/platform": { changeFrequency: "monthly", priority: 0.9 },
   "/insights": { changeFrequency: "monthly", priority: 0.7 },
   "/about": { changeFrequency: "monthly", priority: 0.7 },
   "/contact": { changeFrequency: "monthly", priority: 0.7 },

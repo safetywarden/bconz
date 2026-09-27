@@ -13,6 +13,7 @@ export type PublicRoute =
   | "/responsible-data-governance"
   | "/responsible-ai-principles"
   | "/solutions"
+  | "/platform"
   | "/insights";
 
 export type PageSeo = {
@@ -156,6 +157,19 @@ export const pageSeo: Record<PublicRoute, PageSeo> = {
       "healthcare AI research",
       "life sciences data",
       "clinical research data platform",
+    ],
+  },
+  "/platform": {
+    path: "/platform",
+    title: "Healthcare Data Intelligence Platform: HARM, PIA and DIA",
+    description:
+      "BCONZ platform for healthcare data partnerships: HARM data readiness assessment, PIA provider intelligence and DIA demand intelligence matching research needs to datasets.",
+    keywords: [
+      "healthcare data readiness assessment",
+      "provider intelligence",
+      "research demand intelligence",
+      "dataset matching",
+      "real world data partnerships",
     ],
   },
   "/insights": {
