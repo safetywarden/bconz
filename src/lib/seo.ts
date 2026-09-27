@@ -1,5 +1,6 @@
 import { metadataBase, siteDescription, siteName } from "@/lib/site";
 import { seoSiteConfig } from "@/lib/seo/site-config";
+import { areas, type AreaSlug } from "@/content/datasets";
 
 export type PublicRoute =
   | "/"
@@ -17,6 +18,7 @@ export type PublicRoute =
   | "/platform/harm"
   | "/platform/pia"
   | "/platform/dia"
+  | `/data/${AreaSlug}`
   | "/insights";
 
 export type PageSeo = {
@@ -56,17 +58,24 @@ export const pageSeo: Record<PublicRoute, PageSeo> = {
   },
   "/data": {
     path: "/data",
-    title: "Research-Ready Clinical, Genomic and Imaging Data",
+    title: "EHR, Imaging and Real-World Datasets",
     description:
-      "Explore research-ready clinical, genomic, imaging, biospecimen and real-world healthcare data for enterprise life sciences and AI research.",
+      "De-identified EHR datasets, medical imaging and longitudinal real-world data for life sciences and healthcare AI, licensed through governed partnerships.",
     keywords: [
-      "clinical data licensing",
-      "longitudinal clinical data",
-      "genomics data partnerships",
-      "real world evidence",
-      "medical research data",
+      "ehr datasets",
+      "de-identified ehr data",
+      "real world data ehr",
+      "longitudinal patient data",
+      "medical imaging datasets",
+      "buy medical data",
     ],
   },
+  ...(Object.fromEntries(areas.map((a) => [`/data/${a.slug}`, {
+    path: `/data/${a.slug}` as PublicRoute,
+    title: a.title,
+    description: a.description,
+    keywords: a.keywords,
+  }])) as Record<`/data/${AreaSlug}`, PageSeo>),
   "/request-data": {
     path: "/request-data",
     title: "Request Healthcare Data for Research and AI",

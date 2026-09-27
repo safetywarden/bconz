@@ -5,6 +5,7 @@ import { Heading, Label, Subheading } from "@/components/ui/typography";
 import { Container } from "@/components/layout/container";
 import { Section } from "@/components/layout/section";
 import { Icon } from "@/components/ui/icon";
+import { areas } from "@/content/datasets";
 
 const ecosystemSteps = [
   "Clinical Data",
@@ -74,16 +75,8 @@ const modalities: Array<{
   },
 ];
 
-const diseaseAreas = [
-  "Oncology",
-  "Cardiology",
-  "Neurology",
-  "Rare Diseases",
-  "Diabetes",
-  "Respiratory",
-  "Women's Health",
-  "Infectious Disease",
-];
+// Areas without a dedicated dataset page yet (available on request).
+const diseaseAreas = ["Oncology", "Cardiology", "Rare Diseases", "Women's Health", "Infectious Disease"];
 
 const projectSteps = [
   {
@@ -142,6 +135,16 @@ const audiences = [
 
 const faqs = [
   {
+    question: "What is de-identified EHR data?",
+    answer:
+      "Electronic health record data from which direct identifiers have been removed and quasi-identifiers controlled, so records can be used for approved research without identifying patients. BCONZ datasets are de-identified before research use under the data partner's governance.",
+  },
+  {
+    question: "Can I buy or license EHR datasets from BCONZ?",
+    answer:
+      "Yes. Datasets are licensed for a defined research or development purpose under a data use agreement, after a feasibility review confirms the cohort fits your study. They are not free downloads.",
+  },
+  {
     question: "Can BCONZ create custom cohorts?",
     answer:
       "Yes. We work with research teams and healthcare partners to define study cohorts from available data modalities while preserving governance and scientific fit.",
@@ -168,6 +171,8 @@ const faqs = [
   },
 ];
 
+export { faqs as dataFaqs };
+
 export function ResearchDataPage() {
   return (
     <main>
@@ -179,10 +184,12 @@ export function ResearchDataPage() {
                 Research-Ready Healthcare Data
               </p>
               <h1 className="text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
-                Trusted Healthcare Data for Scientific Discovery
+                EHR datasets and real-world data for research and AI
               </h1>
               <p className="text-lg leading-8 text-slate-700">
-                BCONZ helps connect healthcare organizations with life sciences researchers through governed access to research-ready clinical, molecular and real-world healthcare data.
+                BCONZ provides de-identified EHR datasets and longitudinal patient data from US EMR/EHR sources — across
+                ophthalmology, nephrology, neurology, respiratory, metabolic and immunology — alongside genomic, imaging and
+                other real-world data through governed healthcare data partnerships.
               </p>
               <p className="text-base leading-7 text-slate-700">
                 Explore how these data capabilities support <Link href="/solutions" className="font-semibold text-slate-950 underline underline-offset-4">life sciences and healthcare AI solutions</Link>, or discuss an institution-led collaboration through our <Link href="/data-partners" className="font-semibold text-slate-950 underline underline-offset-4">healthcare data partnership pathway</Link>.
@@ -288,42 +295,36 @@ export function ResearchDataPage() {
       <Section>
         <Container>
           <div className="mx-auto max-w-4xl space-y-6 text-center">
-            <Label>Disease Areas</Label>
-            <Heading>Research focus across clinical specialties</Heading>
+            <Label>Datasets by Disease Area</Label>
+            <Heading>US EHR datasets by disease area</Heading>
             <Subheading>
-              Trusted data partnerships that support oncology, cardiology, neurology and other strategic healthcare research areas.
+              De-identified US EMR/EHR data with approximate patient numbers, rounded down. A patient may appear in more
+              than one indication; the cohort for each study is confirmed during feasibility.
             </Subheading>
           </div>
 
-          <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {diseaseAreas.map((area) => {
-              const iconName =
-                area === "Oncology"
-                  ? "research"
-                  : area === "Cardiology"
-                  ? "trust"
-                  : area === "Neurology"
-                  ? "governance"
-                  : area === "Rare Diseases"
-                  ? "data"
-                  : area === "Diabetes"
-                  ? "clinical"
-                  : area === "Respiratory"
-                  ? "imaging"
-                  : area === "Women's Health"
-                  ? "partnership"
-                  : "research";
-
-              return (
-                <div key={area} className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-sm">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-3xl bg-slate-50 text-slate-950">
-                    <Icon name={iconName} className="h-6 w-6" />
-                  </div>
-                  <p className="mt-5 text-lg font-semibold text-slate-950">{area}</p>
-                </div>
-              );
-            })}
+          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {areas.map((a) => (
+              <Link key={a.slug} href={`/data/${a.slug}`}
+                    className="flex flex-col rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400">
+                <p className="text-lg font-semibold text-slate-950">{a.name} datasets</p>
+                <dl className="mt-4 flex-1 divide-y divide-slate-100 text-sm">
+                  {a.diseases.map((d) => (
+                    <div key={d.name} className="flex items-baseline justify-between gap-3 py-1.5">
+                      <dt className="leading-6 text-slate-600">{d.name.replace(/ \(.*\)$/, "")}</dt>
+                      <dd className="shrink-0 font-semibold tabular-nums text-slate-950">{d.approx}</dd>
+                    </div>
+                  ))}
+                </dl>
+                <span className="mt-4 text-sm font-semibold text-slate-950 underline underline-offset-4">{a.title}</span>
+              </Link>
+            ))}
           </div>
+
+          <p className="mt-8 text-center text-sm leading-6 text-slate-600">
+            Other areas — including {diseaseAreas.join(", ").toLowerCase()} — are available on request through partner
+            networks. <Link href="/request-data" className="font-semibold text-slate-950 underline underline-offset-4">Tell us what you need</Link>.
+          </p>
         </Container>
       </Section>
 
