@@ -19,6 +19,11 @@ export const seoSiteConfig = {
       label: "BCONZ on LinkedIn",
       href: "https://www.linkedin.com/company/bconzinternational",
     },
+    {
+      title: "Instagram",
+      label: "BCONZ on Instagram",
+      href: "https://www.instagram.com/bconzhealth/",
+    },
   ],
   organization: {
     name: "BCONZ",
@@ -42,6 +47,7 @@ export const seoSiteConfig = {
     sameAs: [
       "https://x.com/BconzC",
       "https://www.linkedin.com/company/bconzinternational",
+      "https://www.instagram.com/bconzhealth/",
     ],
   },
 } as const;
