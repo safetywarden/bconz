@@ -24,7 +24,7 @@ const programme = [
   },
   {
     title: "Secure transfer and hosting",
-    description: "Encrypted transfer and hosting options, including keeping data in its home jurisdiction where that is required.",
+    description: "Encrypted transfer and secure hosting, with access controlled for each approved use.",
   },
   {
     title: "Demand intelligence with DIA",
