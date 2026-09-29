@@ -140,7 +140,7 @@ export const products: ProductContent[] = [
     h1: "Healthcare data monetization, driven by published research demand",
     intro: [
       "Who buys healthcare data, and what do they actually need? Research teams answer that question themselves — in the limitations sections of their papers, in their funded grants, and in the countries their trials cannot reach. DIA, BCONZ's Demand Intelligence Agent, reads that published demand and matches it against a specific dataset.",
-      "For a data partner, that turns healthcare data monetization from a guess into an evidence-led conversation: named organisations, the verbatim need they stated, and a need-by-need check of whether your data meets it — through governed, institution-led partnerships, never a data sale.",
+      "For a data partner, that turns healthcare data monetization from a guess into an evidence-led conversation: named organisations, the verbatim need they stated, and a need-by-need check of whether your data meets it — through governed, institution-led partnerships in which data is licensed only for defined, approved purposes.",
     ],
     capabilities: [
       "Searches by disease, drug, biomarker, data type, population or organisation",
