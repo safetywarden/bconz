@@ -90,10 +90,14 @@ export const pageSeo: Record<PublicRoute, PageSeo> = {
   },
   "/data-partners": {
     path: "/data-partners",
-    title: "Healthcare Data Partnerships for Hospitals and Labs",
+    title: "Data Collaboration Programme for Hospitals and Labs",
     description:
-      "Explore responsible data partnership models for hospitals, health systems, labs, biobanks, genomics companies and research institutes.",
+      "Contribute de-identified real-world data for research: readiness assessment, de-identification, harmonisation, hosting and a share of licensing revenue.",
     keywords: [
+      "healthcare data partnership program",
+      "monetize healthcare data",
+      "real world data collaboration",
+      "contribute data for research",
       "hospital data partnerships",
       "genomics data partnerships",
       "federated healthcare data",

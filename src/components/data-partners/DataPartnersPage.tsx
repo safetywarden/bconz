@@ -6,6 +6,44 @@ import { Container } from "@/components/layout/container";
 import { Section } from "@/components/layout/section";
 import { Icon } from "@/components/ui/icon";
 
+// The data collaboration programme: what a contributing organisation gets,
+// and what taking part requires.
+const programme = [
+  {
+    title: "Data readiness assessment",
+    description: "HARM runs read-only inside your systems and shows what your data can support before anything is shared.",
+    href: "/platform/harm",
+  },
+  {
+    title: "De-identification and structuring",
+    description: "Identifiers removed from records, reports and images, and free text structured, to the standard your governance requires.",
+  },
+  {
+    title: "Harmonisation to a common data model",
+    description: "Mapping to models such as OMOP, so researchers can analyse your data alongside other sources.",
+  },
+  {
+    title: "Secure transfer and hosting",
+    description: "Encrypted transfer and hosting options, including keeping data in its home jurisdiction where that is required.",
+  },
+  {
+    title: "Demand intelligence with DIA",
+    description: "See which organisations have published a need for data like yours, and which of those needs your dataset meets.",
+    href: "/platform/dia",
+  },
+  {
+    title: "A share of licensing revenue",
+    description: "When BCONZ licenses de-identified data you contributed, you receive a share of the revenue, set by data type and higher where you provide regular updates.",
+  },
+];
+
+const requirements = [
+  "A registered organisation (a hospital, health system, imaging or diagnostic provider, laboratory, biobank or research institute) with the legal right to contribute its data for de-identified research and commercial use.",
+  "Data that meets BCONZ's quality requirements for its type: for example, clinical records with demographics, diagnoses and free-text notes; medical images with the radiologist's report; or molecular results with the raw files. We assess this with you first.",
+  "Where your data grows over time, regular updates through our secure transfer. Longitudinal data is what researchers value most.",
+  "Approval through your own governance or ethics process for the uses you agree to.",
+];
+
 const partners = [
   {
     title: "Hospitals",
@@ -124,6 +162,7 @@ const governance = [
 ];
 
 const benefits = [
+  "Share in Licensing Revenue",
   "Advance Research",
   "Support Precision Medicine",
   "Expand Scientific Collaboration",
@@ -132,7 +171,22 @@ const benefits = [
   "Enable Multi-Institution Studies",
 ];
 
-const faqs = [
+export const dataPartnerFaqs = [
+  {
+    question: "How do data partners benefit financially?",
+    answer:
+      "Through a revenue share each time BCONZ licenses de-identified data you contributed. The share depends on the data type and on whether you provide regular longitudinal updates, and is set out in your partnership agreement.",
+  },
+  {
+    question: "What kinds of data can we contribute?",
+    answer:
+      "Clinical and EHR data, medical imaging with reports, laboratory and molecular data, and biospecimen-linked data. Requirements differ by type; a HARM readiness assessment shows what your data can support.",
+  },
+  {
+    question: "Do we have to buy anything from BCONZ to take part?",
+    answer:
+      "No. Taking part in the data collaboration programme does not require your organisation to buy any BCONZ product or service.",
+  },
   {
     question: "Who can become a BCONZ Data Partner?",
     answer:
@@ -196,7 +250,7 @@ export function DataPartnersPage() {
                 <div className="rounded-[1.75rem] bg-slate-950 p-6 text-white shadow-sm">
                   <p className="text-sm uppercase tracking-[0.24em] text-teal-300">Institution-led partnerships</p>
                   <p className="mt-4 text-base leading-7">
-                    Collaborations are built around scientific goals, governance and lasting research value rather than transactional data exchange.
+                    Collaborations are built around scientific goals and governance: de-identified data is licensed only for defined, approved purposes, and partners share in the value it creates.
                   </p>
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2">
@@ -219,7 +273,51 @@ export function DataPartnersPage() {
         </Container>
       </Section>
 
-      <Section>
+      <Section id="data-collaboration">
+        <Container>
+          <div className="mx-auto max-w-4xl space-y-6 text-center">
+            <Label>Data Collaboration Programme</Label>
+            <Heading>Put your real-world data to work for research, and share in the value it creates</Heading>
+            <Subheading>
+              Every record, image and test result holds lessons that could help the next patient. BCONZ works with
+              organisations that hold real-world data to make it available, de-identified and under governance, to
+              academic, life sciences and healthcare AI teams. You decide what is shared and for what purpose; we do the
+              work of making it research-ready and finding the teams who need it.
+            </Subheading>
+          </div>
+
+          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {programme.map((item) => (
+              <Card key={item.title} className="p-6">
+                <p className="text-lg font-semibold text-slate-950">{item.title}</p>
+                <p className="mt-3 text-sm leading-6 text-slate-600">{item.description}</p>
+                {item.href ? (
+                  <Link href={item.href} className="mt-4 inline-flex text-sm font-semibold text-slate-950 underline underline-offset-4">
+                    Learn more
+                  </Link>
+                ) : null}
+              </Card>
+            ))}
+          </div>
+
+          <div className="mt-10 rounded-[2rem] border border-slate-200 bg-slate-50 p-8">
+            <p className="text-sm font-semibold uppercase tracking-[0.24em] text-teal-600">Who can take part</p>
+            <ul className="mt-4 list-disc space-y-3 pl-5 text-sm leading-7 text-slate-700">
+              {requirements.map((r) => <li key={r}>{r}</li>)}
+            </ul>
+            <p className="mt-5 text-xs leading-6 text-slate-500">
+              Taking part does not require your organisation to buy any BCONZ product or service.
+            </p>
+            <div className="mt-6">
+              <Button variant="primary" size="large" as="a" href="/contact">
+                Discuss a data collaboration
+              </Button>
+            </div>
+          </div>
+        </Container>
+      </Section>
+
+      <Section className="bg-slate-50">
         <Container>
           <div className="mx-auto max-w-4xl space-y-6 text-center">
             <Label>Who Can Partner</Label>
@@ -251,7 +349,7 @@ export function DataPartnersPage() {
         </Container>
       </Section>
 
-      <Section className="bg-slate-50">
+      <Section>
         <Container>
           <div className="mx-auto max-w-4xl space-y-6 text-center">
             <Label>Why Partner with BCONZ</Label>
@@ -271,7 +369,7 @@ export function DataPartnersPage() {
         </Container>
       </Section>
 
-      <Section>
+      <Section className="bg-slate-50">
         <Container>
           <div className="mx-auto max-w-4xl space-y-6 text-center">
             <Label>How Partnerships Work</Label>
@@ -297,7 +395,7 @@ export function DataPartnersPage() {
         </Container>
       </Section>
 
-      <Section className="bg-slate-50">
+      <Section>
         <Container>
           <div className="mx-auto max-w-4xl space-y-6 text-center">
             <Label>Data Readiness</Label>
@@ -339,7 +437,7 @@ export function DataPartnersPage() {
         </Container>
       </Section>
 
-      <Section>
+      <Section className="bg-slate-50">
         <Container>
           <div className="mx-auto max-w-4xl space-y-6 text-center">
             <Label>Governance Principles</Label>
@@ -360,13 +458,13 @@ export function DataPartnersPage() {
         </Container>
       </Section>
 
-      <Section className="bg-slate-50">
+      <Section>
         <Container>
           <div className="mx-auto max-w-4xl space-y-6 text-center">
             <Label>Partnership Benefits</Label>
             <Heading>Benefits for institutional research partners</Heading>
             <Subheading>
-              Meaningful collaboration without positioning BCONZ as a broker or marketplace.
+              Research collaboration, visibility and a share of the value your data creates.
             </Subheading>
           </div>
 
@@ -380,7 +478,7 @@ export function DataPartnersPage() {
         </Container>
       </Section>
 
-      <Section>
+      <Section className="bg-slate-50">
         <Container>
           <div className="mx-auto max-w-4xl space-y-6 text-center">
             <Label>Frequently Asked Questions</Label>
@@ -391,7 +489,7 @@ export function DataPartnersPage() {
           </div>
 
           <div className="mt-12 space-y-4">
-            {faqs.map((item) => (
+            {dataPartnerFaqs.map((item) => (
               <details key={item.question} className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-sm" tabIndex={0}>
                 <summary className="cursor-pointer text-base font-semibold text-slate-950 outline-none transition hover:text-slate-900">
                   {item.question}
