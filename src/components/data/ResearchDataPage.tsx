@@ -295,11 +295,11 @@ export function ResearchDataPage() {
       <Section>
         <Container>
           <div className="mx-auto max-w-4xl space-y-6 text-center">
-            <Label>Datasets by Disease Area</Label>
-            <Heading>US EHR datasets by disease area</Heading>
+            <Label>Datasets by Disease Area and Modality</Label>
+            <Heading>EHR and medical imaging datasets</Heading>
             <Subheading>
-              De-identified US EMR/EHR data with approximate patient numbers, rounded down. A patient may appear in more
-              than one indication; the cohort for each study is confirmed during feasibility.
+              De-identified US EMR/EHR data by disease area, and medical imaging with reports through early access. The
+              cohort for each study is confirmed during feasibility.
             </Subheading>
           </div>
 
@@ -308,14 +308,11 @@ export function ResearchDataPage() {
               <Link key={a.slug} href={`/data/${a.slug}`}
                     className="flex flex-col rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400">
                 <p className="text-lg font-semibold text-slate-950">{a.name} datasets</p>
-                <dl className="mt-4 flex-1 divide-y divide-slate-100 text-sm">
+                <ul className="mt-4 flex-1 divide-y divide-slate-100 text-sm">
                   {a.diseases.map((d) => (
-                    <div key={d.name} className="flex items-baseline justify-between gap-3 py-1.5">
-                      <dt className="leading-6 text-slate-600">{d.name.replace(/ \(.*\)$/, "")}</dt>
-                      <dd className="shrink-0 font-semibold tabular-nums text-slate-950">{d.approx}</dd>
-                    </div>
+                    <li key={d.name} className="py-1.5 leading-6 text-slate-600">{d.name.replace(/ \(.*\)$/, "")}</li>
                   ))}
-                </dl>
+                </ul>
                 <span className="mt-4 text-sm font-semibold text-slate-950 underline underline-offset-4">{a.title}</span>
               </Link>
             ))}
