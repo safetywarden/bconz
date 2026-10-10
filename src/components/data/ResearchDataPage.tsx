@@ -295,11 +295,11 @@ export function ResearchDataPage() {
       <Section>
         <Container>
           <div className="mx-auto max-w-4xl space-y-6 text-center">
-            <Label>Datasets by Disease Area</Label>
-            <Heading>US EHR datasets by disease area</Heading>
+            <Label>Datasets by Disease Area and Modality</Label>
+            <Heading>EHR and medical imaging datasets</Heading>
             <Subheading>
-              De-identified US EMR/EHR data across these disease areas and indications. The cohort for each study is
-              confirmed during feasibility.
+              De-identified US EMR/EHR data by disease area, and medical imaging with reports through early access. The
+              cohort for each study is confirmed during feasibility.
             </Subheading>
           </div>
 

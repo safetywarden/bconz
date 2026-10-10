@@ -43,7 +43,7 @@ export default async function Page({ params }: Params) {
         url: `https://www.bconz.com${path}`,
         isAccessibleForFree: false,
         creator: { "@id": "https://www.bconz.com/#organization" },
-        spatialCoverage: "United States",
+        ...(a.coverage === "" ? {} : { spatialCoverage: a.coverage ?? "United States" }),
       }} />
       <JsonLd id={`ld-data-${a.slug}-faq`} data={faqJsonLd(a.faqs)} />
       <DatasetAreaPage area={a} />

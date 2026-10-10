@@ -13,7 +13,7 @@
  * "may include", also confirmed in feasibility.
  */
 
-export type AreaSlug = "ophthalmology" | "neurology" | "nephrology" | "respiratory" | "metabolic" | "immunology";
+export type AreaSlug = "ophthalmology" | "neurology" | "nephrology" | "respiratory" | "metabolic" | "immunology" | "imaging";
 
 export type DatasetArea = {
   slug: AreaSlug;
@@ -28,6 +28,11 @@ export type DatasetArea = {
   uses: Array<{ title: string; text: string }>;
   dataTypes: string[];
   faqs: Array<{ q: string; a: string }>;
+  /** Defaults suit the US EHR areas; the imaging area overrides them. */
+  listHeading?: string;
+  sourceNote?: string;
+  /** Dataset structured data; omitted where no single country applies. */
+  coverage?: string;
 };
 
 const SHARED_FAQS = (area: string) => [
@@ -163,6 +168,33 @@ export const areas: DatasetArea[] = [
     ],
     dataTypes: ["Longitudinal EHR (diagnoses, encounters)", "Medications and therapy switching", "Laboratory results and inflammatory markers", "Procedures, endoscopy and surgery"],
     faqs: SHARED_FAQS("inflammatory bowel disease"),
+  },
+  {
+    slug: "imaging",
+    name: "Medical imaging",
+    title: "Medical Imaging Datasets with Reports",
+    description: "De-identified medical imaging datasets with clinical reports: X-ray, CT, MRI, ultrasound and echo, licensed for imaging AI and research. Early access open.",
+    keywords: ["medical imaging datasets", "medical imaging dataset for ai", "chest x-ray dataset", "ct dataset", "mri dataset", "ultrasound dataset", "echocardiography dataset", "radiology report dataset"],
+    h1: "Medical imaging datasets with reports, for imaging AI and research",
+    diseases: [{ name: "X-ray" }, { name: "CT" }, { name: "MRI" }, { name: "Ultrasound" }, { name: "Echocardiography" }],
+    listHeading: "Modalities",
+    sourceNote: "Early access through BCONZ partner networks in the United States and India. Modalities, volume and population for each project are confirmed during feasibility.",
+    coverage: "",
+    intro: "Imaging AI is limited less by model design than by data: too few studies, too little clinical text, and populations that look alike. BCONZ is opening governed access to de-identified medical imaging datasets with the clinical report, from partner networks in the United States and India, for training, external validation and imaging research. Early access is open now.",
+    uses: [
+      { title: "Training and fine-tuning", text: "Imaging studies with reports for developing and improving imaging-AI models." },
+      { title: "External validation", text: "Test a model on studies and populations outside its development data, before submission or deployment." },
+      { title: "Image–report pairs", text: "Images linked to their clinical reports, for vision-language models, report generation and label creation." },
+      { title: "Targeted cohorts", text: "Cohorts defined from report text, such as a finding, body area or modality, confirmed during feasibility." },
+    ],
+    dataTypes: ["DICOM images, de-identified at header and pixel level before release", "Clinical reports linked to each study", "Study metadata such as modality and body area", "Clinical context from linked records, where available"],
+    faqs: [
+      { q: "Which imaging modalities are available?", a: "X-ray, CT, MRI, ultrasound and echocardiography through BCONZ's partner networks. Availability, volume and population for a project are confirmed during feasibility." },
+      { q: "Where does the imaging data come from?", a: "From BCONZ partner networks in the United States and India, including populations that are under-represented in public imaging datasets. Which sources fit a project is confirmed during feasibility." },
+      { q: "Do the studies come with reports?", a: "Studies are paired with their clinical report where available, as text linked to the study. Report coverage for a project is confirmed during feasibility." },
+      { q: "Can we see a sample before committing?", a: "Where the data partner agrees, a small de-identified evaluation sample can be provided under an evaluation agreement." },
+      { q: "Is this a free dataset download?", a: "No. Access is licensed for a defined research or development purpose under a data use agreement, after feasibility and governance review." },
+    ],
   },
 ];
 

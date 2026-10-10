@@ -37,20 +37,20 @@ export function DatasetAreaPage({ area: a }: { area: DatasetArea }) {
             </div>
             <aside className="grid gap-5 rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm">
               <div>
-                <h2 className="text-base font-semibold text-slate-950">Indications available</h2>
+                <h2 className="text-base font-semibold text-slate-950">{a.listHeading ?? "Indications available"}</h2>
                 <ul className="mt-3 divide-y divide-slate-100 text-sm">
                   {a.diseases.map((d) => (
                     <li key={d.name} className="py-2 leading-6 text-slate-600">{d.name}</li>
                   ))}
                 </ul>
-                <p className="mt-2 text-xs leading-5 text-slate-500">US EMR/EHR data. The cohort for each study is confirmed during feasibility.</p>
+                <p className="mt-2 text-xs leading-5 text-slate-500">{a.sourceNote ?? "US EMR/EHR data. The cohort for each study is confirmed during feasibility."}</p>
               </div>
               <div>
                 <h2 className="text-base font-semibold text-slate-950">Data may include</h2>
                 <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-7 text-slate-600">
                   {a.dataTypes.map((d) => <li key={d}>{d}</li>)}
                 </ul>
-                <p className="mt-3 text-xs leading-5 text-slate-500">Availability of data beyond EHR, and the cohort for each study, are confirmed during feasibility.</p>
+                <p className="mt-3 text-xs leading-5 text-slate-500">Availability of each data element, and the cohort for each study, are confirmed during feasibility.</p>
               </div>
             </aside>
           </div>
