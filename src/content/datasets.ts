@@ -31,6 +31,8 @@ export type DatasetArea = {
   /** Defaults suit the US EHR areas; the imaging area overrides them. */
   listHeading?: string;
   sourceNote?: string;
+  /** Unnamed partner archives, described without figures. */
+  partnerNote?: string;
   /** Dataset structured data; omitted where no single country applies. */
   coverage?: string;
 };
@@ -178,6 +180,7 @@ export const areas: DatasetArea[] = [
     h1: "Medical imaging datasets with reports, for imaging AI and research",
     diseases: [{ name: "X-ray" }, { name: "CT" }, { name: "MRI" }, { name: "Ultrasound" }, { name: "Echocardiography" }],
     listHeading: "Modalities",
+    partnerNote: "An Indian archive of X-ray, CT and MRI studies from 2016 to 2025, almost all paired with the radiologist's report.",
     sourceNote: "Early access through BCONZ partner networks in the United States and India. Modalities, volume and population for each project are confirmed during feasibility.",
     coverage: "",
     intro: "Imaging AI is limited less by model design than by data: too few studies, too little clinical text, and populations that look alike. BCONZ is opening governed access to de-identified medical imaging datasets with the clinical report, from partner networks in the United States and India, for training, external validation and imaging research. Early access is open now.",

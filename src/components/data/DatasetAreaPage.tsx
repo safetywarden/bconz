@@ -43,6 +43,11 @@ export function DatasetAreaPage({ area: a }: { area: DatasetArea }) {
                     <li key={d.name} className="py-2 leading-6 text-slate-600">{d.name}</li>
                   ))}
                 </ul>
+                {a.partnerNote && (
+                  <p className="mt-3 text-sm leading-6 text-slate-700">
+                    <strong className="text-slate-950">Partner archives include:</strong> {a.partnerNote}
+                  </p>
+                )}
                 <p className="mt-2 text-xs leading-5 text-slate-500">{a.sourceNote ?? "US EMR/EHR data. The cohort for each study is confirmed during feasibility."}</p>
               </div>
               <div>
