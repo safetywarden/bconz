@@ -37,16 +37,13 @@ export function DatasetAreaPage({ area: a }: { area: DatasetArea }) {
             </div>
             <aside className="grid gap-5 rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm">
               <div>
-                <h2 className="text-base font-semibold text-slate-950">Indications and approximate patients</h2>
-                <dl className="mt-3 divide-y divide-slate-100 text-sm">
+                <h2 className="text-base font-semibold text-slate-950">Indications available</h2>
+                <ul className="mt-3 divide-y divide-slate-100 text-sm">
                   {a.diseases.map((d) => (
-                    <div key={d.name} className="flex items-baseline justify-between gap-4 py-2">
-                      <dt className="leading-6 text-slate-600">{d.name}</dt>
-                      <dd className="shrink-0 font-semibold tabular-nums text-slate-950">{d.approx}</dd>
-                    </div>
+                    <li key={d.name} className="py-2 leading-6 text-slate-600">{d.name}</li>
                   ))}
-                </dl>
-                <p className="mt-2 text-xs leading-5 text-slate-500">US EMR/EHR data. Approximate, rounded down; a patient may appear in more than one indication.</p>
+                </ul>
+                <p className="mt-2 text-xs leading-5 text-slate-500">US EMR/EHR data. The cohort for each study is confirmed during feasibility.</p>
               </div>
               <div>
                 <h2 className="text-base font-semibold text-slate-950">Data may include</h2>
