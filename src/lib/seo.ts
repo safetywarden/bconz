@@ -1,6 +1,7 @@
 import { metadataBase, siteDescription, siteName } from "@/lib/site";
 import { seoSiteConfig } from "@/lib/seo/site-config";
 import { areas, type AreaSlug } from "@/content/datasets";
+import { posts, type PostSlug } from "@/content/posts";
 
 export type PublicRoute =
   | "/"
@@ -19,7 +20,8 @@ export type PublicRoute =
   | "/platform/pia"
   | "/platform/dia"
   | `/data/${AreaSlug}`
-  | "/insights";
+  | "/insights"
+  | `/insights/${PostSlug}`;
 
 export type PageSeo = {
   path: PublicRoute;
@@ -231,7 +233,7 @@ export const pageSeo: Record<PublicRoute, PageSeo> = {
     path: "/insights",
     title: "Healthcare Data and AI Insights",
     description:
-      "Read BCONZ insights on healthcare data strategy, real-world evidence, AI-ready clinical data, governance and enterprise research collaboration.",
+      "Practical guides to licensing, de-identifying and validating healthcare data for research and AI, and what researchers say they need.",
     keywords: [
       "healthcare data insights",
       "real world evidence strategy",
@@ -239,6 +241,12 @@ export const pageSeo: Record<PublicRoute, PageSeo> = {
       "clinical data governance",
     ],
   },
+  ...(Object.fromEntries(posts.map((p) => [`/insights/${p.slug}`, {
+    path: `/insights/${p.slug}` as PublicRoute,
+    title: p.seoTitle,
+    description: p.description,
+    keywords: p.keywords,
+  }])) as Record<`/insights/${PostSlug}`, PageSeo>),
 };
 
 export const sitemapRoutes = Object.values(pageSeo);

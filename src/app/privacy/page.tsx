@@ -27,7 +27,7 @@ const privacySections = [
   {
     title: "Website analytics",
     content:
-      "BCONZ does not currently use a dedicated website analytics product on this site. If analytics are introduced, this policy should be updated to describe the provider and the information collected.",
+      "BCONZ uses Vercel Web Analytics to understand how the website is used. It does not use cookies and does not identify individual visitors. It records pages viewed, the referring website, approximate country, and device, browser and operating system type, and reports them to BCONZ only as totals.",
   },
   {
     title: "Cookies",
@@ -37,7 +37,7 @@ const privacySections = [
   {
     title: "Third-party services actually used",
     content:
-      "BCONZ uses Web3Forms to process public enquiry submissions, Vercel to host and deliver the website, and GoDaddy Professional Email for business email communication. These providers may process information as needed to deliver their services to BCONZ.",
+      "BCONZ uses Web3Forms to process public enquiry submissions, Vercel to host and deliver the website and to provide website analytics, and GoDaddy Professional Email for business email communication. These providers may process information as needed to deliver their services to BCONZ.",
   },
   {
     title: "Security",
@@ -98,7 +98,7 @@ export default function PrivacyPage() {
             ))}
 
             <p className="border-t border-slate-200 pt-6 text-sm text-slate-500">
-              Last updated: August 6, 2026
+              Last updated: November 2, 2026
             </p>
           </div>
         </div>
