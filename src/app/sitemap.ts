@@ -2,6 +2,7 @@ import { MetadataRoute } from "next";
 import { metadataBase } from "@/lib/site";
 import { sitemapRoutes, type PublicRoute } from "@/lib/seo";
 import { areas } from "@/content/datasets";
+import { posts } from "@/content/posts";
 
 const sitemapConfig: Record<
   PublicRoute,
@@ -28,6 +29,8 @@ const sitemapConfig: Record<
   "/responsible-ai-principles": { changeFrequency: "monthly", priority: 0.6 },
   ...(Object.fromEntries(areas.map((a) => [`/data/${a.slug}`, { changeFrequency: "monthly", priority: 0.8 }])) as
     Record<`/data/${(typeof areas)[number]["slug"]}`, { changeFrequency: "monthly"; priority: number }>),
+  ...(Object.fromEntries(posts.map((p) => [`/insights/${p.slug}`, { changeFrequency: "monthly", priority: 0.7 }])) as
+    Record<`/insights/${(typeof posts)[number]["slug"]}`, { changeFrequency: "monthly"; priority: number }>),
 };
 
 export default function sitemap(): MetadataRoute.Sitemap {

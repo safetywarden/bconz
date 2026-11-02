@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Analytics } from "@vercel/analytics/next";
 import { Geist } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/navigation/header";
@@ -39,6 +40,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <div id="content" className="flex min-h-[calc(100vh-5rem)] flex-col">{children}</div>
         <Footer />
         <BackToTopButton />
+        <Analytics />
       </body>
     </html>
   );
