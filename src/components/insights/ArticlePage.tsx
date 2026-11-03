@@ -7,14 +7,16 @@ import { posts, type Block, type Post } from "@/content/posts";
 
 const linkClass = "font-semibold text-slate-950 underline underline-offset-4";
 
-/** Renders [text](href) links inside article text; other text is plain. */
+/** Renders [text](href) links and **bold** inside article text; other text is plain. */
 function inline(text: string): ReactNode[] {
   const out: ReactNode[] = [];
-  const re = /\[([^\]]+)\]\(([^)]+)\)/g;
+  const re = /\[([^\]]+)\]\(([^)]+)\)|\*\*([^*]+)\*\*/g;
   let last = 0;
   for (const m of text.matchAll(re)) {
     if (m.index > last) out.push(text.slice(last, m.index));
-    out.push(<Link key={m.index} href={m[2]} className={linkClass}>{m[1]}</Link>);
+    out.push(m[3]
+      ? <strong key={m.index} className="text-slate-950">{m[3]}</strong>
+      : <Link key={m.index} href={m[2]} className={linkClass}>{m[1]}</Link>);
     last = m.index + m[0].length;
   }
   if (last < text.length) out.push(text.slice(last));
