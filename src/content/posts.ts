@@ -6,13 +6,16 @@
  * week's LinkedIn post. Facts must be checkable: cite sources in `references`.
  * No partner names and no figures about partner datasets.
  *
- * Paragraph and list text may contain inline links as [text](/path).
+ * Paragraph and list text may contain inline links as [text](/path) and bold as **text**.
  */
 
 export type PostSlug =
   | "de-identifying-medical-images"
   | "public-medical-imaging-datasets-limits"
-  | "what-research-papers-say-about-missing-data";
+  | "what-research-papers-say-about-missing-data"
+  | "licensing-medical-imaging-data-checklist"
+  | "external-validation-medical-ai"
+  | "hospital-data-licensing-guide";
 
 export type Block =
   | { h2: string }
@@ -207,6 +210,119 @@ export const posts: Post[] = [
     references: [
       { text: "Method: BCONZ DIA analysis of 1,959 papers stating a data limitation, published 2023–2026, across 11 disease areas; up to 200 recent papers per area." },
       { text: "Source: Europe PMC", url: "https://europepmc.org" },
+    ],
+  },
+  {
+    slug: "licensing-medical-imaging-data-checklist",
+    title: "Licensing medical imaging data for AI: a buyer's checklist",
+    seoTitle: "Licensing Medical Imaging Data for AI: A Checklist",
+    description:
+      "What to agree before licensing medical imaging data for AI: rights, permitted use, model ownership, data specification, de-identification and price.",
+    keywords: ["license medical imaging data", "data licensing agreement AI training", "buy medical imaging data", "imaging dataset licence terms"],
+    category: "Data licensing",
+    published: "2026-11-03",
+    readingTime: "8 min read",
+    body: [
+      {"p": "Licensing data is now a normal part of building imaging AI. Data licences aren't standard yet, though, and when something goes wrong it's usually in the contract, not the data. Here's what to pin down before you sign, in the order we'd check it."},
+      {"h2": "1. Who has the right to license it?"},
+      {"p": "Start with the chain of rights. The organisation selling you data is often not the one that collected it. Ask three things:"},
+      {"ul": ["Who holds the rights, by name?", "What agreement lets the seller license it to you?", "What did the patients consent to, or which ethics approval or waiver covers this kind of secondary use?"]},
+      {"p": "If the answers are vague, everything after them rests on nothing."},
+      {"h2": "2. What exactly you're allowed to do"},
+      {"ul": ["**Purpose.** Training, validation, regulatory submission, a commercial product: each should be named.", "**Field of use.** Is the licence limited to one condition, body part or product?", "**Territory and term.** Where you can use it, for how long, and what happens at the end.", "**Exclusivity.** Most data licences are non-exclusive. Exclusivity costs more and is rarely needed.", "**Who else can touch it.** Your cloud provider, annotation vendor or contract research organisation may need access. Make sure the licence allows it."]},
+      {"h2": "3. Who owns the model"},
+      {"p": "This is the clause teams most often skim. The licence should say plainly that models, weights and outputs trained on the data belong to you, and that you can keep using and selling the model after the licence ends and the data is deleted."},
+      {"p": "Watch for two traps: royalties on revenue from the model, and clauses requiring you to delete \"derivatives\" of the data, which could be read to include the model itself."},
+      {"h2": "4. The data specification"},
+      {"p": "Write down what \"the dataset\" means, in a schedule to the contract:"},
+      {"ul": ["modalities and body parts", "number of patients and number of studies (both matter: studies per patient changes what you can do)", "sites, countries, scanner makers and models", "date range", "population: age, sex and ethnicity where recorded", "what comes with each study: reports, labels, clinical data, follow-up", "format: DICOM at original resolution, or converted and compressed", "how cases were chosen: every consecutive patient, or enriched for a condition"]},
+      {"h2": "5. An evaluation sample first"},
+      {"p": "Ask for a small de-identified sample under a short evaluation agreement before you commit. It shows you image quality, report quality, how complete the headers are and whether de-identification was done properly. A supplier who won't share any sample, even under a confidentiality agreement, is telling you something."},
+      {"h2": "6. De-identification evidence"},
+      {"p": "Ask how the headers, burned-in pixel text and reports were de-identified, and for the documentation behind it, such as an Expert Determination report under HIPAA. [Our guide to de-identifying medical images](/insights/de-identifying-medical-images) lists the questions."},
+      {"h2": "7. Delivery, security and deletion"},
+      {"ul": ["How the data is delivered: secure transfer, cloud storage or remote access only.", "What security you must have in place.", "A ban on re-identifying patients or linking the data to other sources.", "Return or deletion at the end, with a certificate of deletion.", "Breach notification: who tells whom, and how fast."]},
+      {"h2": "8. Price"},
+      {"p": "Common models are a price per study, per cohort, or a fixed fee for a defined dataset, sometimes with extra fees for labels or exclusivity. Prices tend to rise with rarity (rare conditions, specific populations), richness (reports, follow-up, outcomes) and restrictions (exclusivity, commercial use). Ask what's included: replacing corrupt files, answering questions about the data, refreshes with newer data."},
+      {"h2": "Red flags"},
+      {"ul": ["Answers about rights that still have template brackets in them.", "No sample under any terms.", "A licence that says nothing about who owns the model.", "\"Anonymised\" with no method described.", "Dataset sizes that change from one call to the next."]},
+      {"p": "We check these points with every data partner before we offer their data. If you're looking for imaging data for training or validation, see [medical imaging datasets](/data/imaging) or [tell us what you need](/request-data)."},
+    ],
+    references: [
+      {"text": "US Department of Health and Human Services: Guidance regarding methods for de-identification of protected health information under HIPAA", "url": "https://www.hhs.gov/hipaa/for-professionals/special-topics/de-identification/index.html"},
+    ],
+  },
+  {
+    slug: "external-validation-medical-ai",
+    title: "External validation for medical AI: what a good test dataset looks like",
+    seoTitle: "External Validation Datasets for Medical AI",
+    description:
+      "What makes a test set truly external for medical AI: independent sites, no patient overlap, a representative population and a sound reference standard.",
+    keywords: ["external validation dataset", "independent test set medical AI", "external validation medical imaging AI", "AI model validation dataset"],
+    category: "Healthcare AI",
+    published: "2026-11-03",
+    readingTime: "7 min read",
+    body: [
+      {"p": "\"External validation is needed.\" It's one of the most common sentences in medical AI papers. In [our analysis of 1,959 papers that state a data gap](/insights/what-research-papers-say-about-missing-data), 13% asked for exactly that. A 2019 review of studies of AI for medical image diagnosis found that only 6% had validated their algorithm on external data."},
+      {"p": "Here's what external validation actually requires, and why a held-out slice of your training data isn't it."},
+      {"h2": "Internal, temporal and external"},
+      {"ul": ["**Internal validation:** a random split of the same data source. It tells you the model learned something, not that it travels.", "**Temporal validation:** later data from the same sites. It catches change over time, but the patients, scanners and habits are the same.", "**External validation:** data from different sites, ideally different health systems or countries, that played no part in building the model. This is the test that best predicts how the model will do in the real world."]},
+      {"h2": "What makes a test set independent"},
+      {"ul": ["It comes from different sites than the training data.", "There's no patient overlap. The same patient can be seen at two hospitals, and the same images can turn up in more than one public dataset.", "The model is locked before you look. No tuning thresholds on the test set.", "Where possible, someone other than the development team holds it and runs the test."]},
+      {"h2": "Representative of the intended use"},
+      {"p": "The test set should look like the patients and settings where the model will be used: the same intended population, the scanners and protocols in use there, the real-world prevalence of the condition (or both enriched and real-world estimates), and the full range of severity and confounders, such as implanted devices, prior surgery and poor image quality."},
+      {"h2": "Subgroups"},
+      {"p": "Report performance by age, sex, ethnicity where recorded, site and scanner maker. A model can look good overall and still fail one group; chest X-ray models trained on large public datasets have been shown to underdiagnose disease more often in under-served groups. Plan subgroup sizes before you collect data, so each subgroup has enough cases to say something."},
+      {"h2": "The reference standard"},
+      {"p": "Decide how the truth is established: the original radiology report, the consensus of several expert readers, pathology results or follow-up outcomes. Reports are cheaper but noisier; expert consensus and outcomes cost more and are easier to defend. Record the readers' experience and how disagreements were settled."},
+      {"h2": "How many cases"},
+      {"p": "Enough to estimate sensitivity and specificity with useful precision, and that depends on prevalence. A rare finding needs many cases in total, or an enriched set, to get enough positives. Work it out with a statistician before you acquire data, not after."},
+      {"h2": "Reporting"},
+      {"p": "Reporting guidelines help reviewers trust the result: TRIPOD+AI for prediction models and CLAIM for AI in medical imaging. For a regulatory submission, check the regulator's guidance for your device type and market."},
+      {"h2": "Where external data comes from"},
+      {"ul": ["**Collaborating hospitals:** strong evidence, but slow to set up.", "**Public datasets:** only if they weren't used in training and the licence allows your use. See [where public imaging datasets fall short](/insights/public-medical-imaging-datasets-limits).", "**Licensed datasets** from sites and populations your model hasn't seen."]},
+      {"p": "If you need an external validation set, [tell us the modality, population and size you need](/request-data)."},
+    ],
+    references: [
+      {"text": "Kim DW, et al. Design characteristics of studies reporting the performance of artificial intelligence algorithms for diagnostic analysis of medical images: results from recently published papers. Korean Journal of Radiology, 2019."},
+      {"text": "Collins GS, et al. TRIPOD+AI statement: updated guidance for reporting clinical prediction models that use regression or machine learning methods. BMJ, 2024."},
+      {"text": "Mongan J, Moy L, Kahn CE Jr. Checklist for Artificial Intelligence in Medical Imaging (CLAIM): a guide for authors and reviewers. Radiology: Artificial Intelligence, 2020."},
+      {"text": "Seyyed-Kalantari L, et al. Underdiagnosis bias of artificial intelligence algorithms applied to chest radiographs in under-served patient populations. Nature Medicine, 2021."},
+    ],
+  },
+  {
+    slug: "hospital-data-licensing-guide",
+    title: "Licensing de-identified hospital data for research: a guide for hospitals and labs",
+    seoTitle: "Hospital Data Licensing for Research: A Guide",
+    description:
+      "How hospitals, labs and imaging centres can make de-identified data available for research and AI: demand, governance, de-identification and revenue.",
+    keywords: ["monetize hospital data", "hospital data licensing", "hospital data partnership", "sell de-identified medical data", "healthcare data collaboration"],
+    category: "Data partnerships",
+    published: "2026-11-03",
+    readingTime: "7 min read",
+    body: [
+      {"p": "Hospitals, labs and imaging centres hold years of images, test results and clinical records. Researchers and companies say in print that they need exactly this kind of data: [almost half the papers we analysed](/insights/what-research-papers-say-about-missing-data) say their evidence came from a single centre. Yet most of it never leaves the archive, usually not because nobody wants it, but because the path from archive to licensed dataset isn't clear."},
+      {"p": "Here's what that path involves."},
+      {"h2": "1. Is there demand for your data?"},
+      {"p": "Data is most valuable when it fills a gap: a population under-represented in research, a region with little published data, long follow-up, images paired with reports, or a rare condition. Data from India and much of Asia, for example, is scarce in the public datasets most AI is trained on. Before investing, check who has published a need for data like yours. That's what [DIA](/platform/dia) does."},
+      {"h2": "2. Governance comes first"},
+      {"ul": ["An institutional decision on whether and how data is shared.", "Ethics committee approval, or a waiver, for secondary use. Requirements vary by country.", "A check of what patients consented to.", "Compliance with data protection law, such as India's Digital Personal Data Protection Act 2023, HIPAA in the United States or GDPR in Europe. Take legal advice.", "A policy on permitted uses, for example no re-identification, no insurance underwriting and no onward resale."]},
+      {"h2": "3. Know what you have"},
+      {"p": "Make an inventory: which modalities and tests, which years, what volumes, how much has reports, what clinical data links to it and how consistent the coding is. Most archives are messier than expected, with missing reports, mixed formats and duplicate patients. A [data readiness assessment](/platform/harm) shows what the data can support before anyone promises it to a buyer."},
+      {"h2": "4. De-identification"},
+      {"p": "Headers, text burned into images, faces in head scans and free-text reports all need treatment ([our guide](/insights/de-identifying-medical-images)). Dates are usually shifted rather than removed, to keep timelines intact. The method should be documented and checked."},
+      {"h2": "5. Choose a sharing model"},
+      {"ul": ["**Licensing de-identified extracts.** The data leaves under a licence for a defined purpose and term.", "**Federated or remote access.** The data stays on your systems; researchers run analyses or train models without taking it away.", "**Working through a partner.** A partner finds buyers, handles contracts and delivery, and shares the licensing revenue with you."]},
+      {"p": "Each option trades control, effort and income differently."},
+      {"h2": "6. What you get back"},
+      {"p": "Licensing revenue; research collaborations and co-authorship; a better-organised archive; and research that includes your patients' population. Set realistic expectations: income depends on demand for your specific data and builds over time."},
+      {"h2": "7. Questions to ask any partner"},
+      {"ol": ["Who decides which buyers get access, and can we refuse a buyer?", "Which uses are prohibited?", "Where does the data sit, and who can reach it?", "How is revenue shared and reported?", "Who carries liability if something goes wrong?", "Can we leave, and what happens to data already licensed?"]},
+      {"p": "The [BCONZ Data Collaboration Programme](/data-partners) works with hospitals, labs and imaging centres on readiness, de-identification and licensing, with a share of licensing revenue. [Talk to us](/contact)."},
+    ],
+    references: [
+      {"text": "Digital Personal Data Protection Act, 2023 (India)"},
+      {"text": "US Department of Health and Human Services: Guidance regarding methods for de-identification of protected health information under HIPAA", "url": "https://www.hhs.gov/hipaa/for-professionals/special-topics/de-identification/index.html"},
     ],
   },
 ];
