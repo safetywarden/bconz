@@ -1,6 +1,17 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // pia.bconz.com is the PIA app; its copies of public pages belong on www.
+  async redirects() {
+    return [
+      {
+        source: "/:path((?!pia|api|_next)[^.]+)",
+        has: [{ type: "host", value: "pia.bconz.com" }],
+        destination: "https://www.bconz.com/:path",
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {
@@ -23,6 +34,10 @@ const nextConfig: NextConfig = {
             value: "camera=(), microphone=(), geolocation=()",
           },
         ],
+      },
+      {
+        source: "/pia/:path*",
+        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
       },
     ];
   },
