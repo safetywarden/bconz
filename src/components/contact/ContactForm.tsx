@@ -29,6 +29,7 @@ const interestAreas = [
   "Strategic Partnership",
   "Technology Partnership",
   "Scientific Collaboration",
+  "Data curation services",
   "Media or Speaking",
   "Other",
 ];

@@ -78,50 +78,43 @@ const modalities: Array<{
 // Areas without a dedicated dataset page yet (available on request).
 const diseaseAreas = ["Oncology", "Cardiology", "Rare Diseases", "Women's Health", "Infectious Disease"];
 
-const projectSteps = [
-  {
-    title: "Research Question",
-    description: "Define the scientific objective and identify the data needed to answer it.",
-  },
-  {
-    title: "Feasibility Assessment",
-    description: "Evaluate data availability, cohort size and alignment to study requirements.",
-  },
-  {
-    title: "Governance Review",
-    description: "Confirm research scope, access controls and partner commitments before data preparation.",
-  },
-  {
-    title: "Dataset Preparation",
-    description: "Curate, link and standardize data elements for reproducible research workflows.",
-  },
-  {
-    title: "Quality Review",
-    description: "Validate completeness, consistency and provenance before secure delivery.",
-  },
-  {
-    title: "Secure Delivery",
-    description: "Provide access through trusted channels for approved research teams.",
-  },
+const licensingSteps = [
+  { title: "Share your need", description: "Modality, cohort, volume and intended use." },
+  { title: "NDA", description: "A mutual NDA with evaluation terms, then the detailed catalogue." },
+  { title: "Free sample", description: "Check a sample against your criteria before you commit." },
+  { title: "Quote", description: "Indicative pricing by volume tier." },
+  { title: "License", description: "Sign the licence, with the data owner directly or through BCONZ, and receive the data." },
 ];
 
-const governanceFeatures = [
-  {
-    title: "Purpose-specific access",
-    description: "Data use is scoped to approved scientific objectives and governed research plans.",
-  },
-  {
-    title: "Institutional oversight",
-    description: "Research programs are overseen by clinical and academic stakeholders to preserve trust.",
-  },
-  {
-    title: "Research agreements",
-    description: "Agreements define data scope, permitted analysis and collaboration expectations.",
-  },
-  {
-    title: "Privacy by design",
-    description: "Data handling is built for privacy with minimal exposure and strong controls.",
-  },
+const licenceModels = [
+  { title: "Per study, by volume tier", description: "The default for most buyers." },
+  { title: "Subscription", description: "A regular refresh of new data, to keep models current." },
+  { title: "Validation sets", description: "Curated test sets for external and regulatory validation." },
+  { title: "Academic research", description: "Research-only use at a small flat fee." },
+  { title: "Time-limited exclusivity", description: "One licensee, for a limited time and field." },
+];
+
+const cohortSteps = [
+  { title: "Spec", description: "Inclusion criteria, modalities, volume and format." },
+  { title: "Feasibility", description: "Counts across our network before any commitment." },
+  { title: "QC sample", description: "A small sample to check against your criteria." },
+  { title: "Tranches", description: "Delivery in batches as each source is cleared." },
+];
+
+const qualityChecks = [
+  "DICOM integrity and series completeness",
+  "Image–report matching",
+  "Metadata and slice thickness checked against your spec",
+  "Headers and files scanned for identifiers",
+  "Source provenance and consent documents reviewed",
+];
+
+const complianceChecks = [
+  "De-identification to HIPAA Safe Harbor",
+  "Screening under the US DOJ bulk sensitive data rule, plus sanctions screening",
+  "Clear licence scope: use, term and territory",
+  "Evaluation samples under NDA, deleted within 90 days",
+  "Approved cloud processing, with no onward transfer",
 ];
 
 const audiences = [
@@ -142,7 +135,7 @@ const faqs = [
   {
     question: "Can I buy or license EHR datasets from BCONZ?",
     answer:
-      "Yes. Datasets are licensed for a defined research or development purpose under a data use agreement, after a feasibility review confirms the cohort fits your study. They are not free downloads.",
+      "Yes. Each dataset is licensed from its data owner, directly or through BCONZ, for a defined research or development purpose, after a feasibility review confirms the cohort fits your study. BCONZ does not host the data; it is delivered under the licence. Datasets are not free downloads.",
   },
   {
     question: "Can BCONZ create custom cohorts?",
@@ -328,16 +321,17 @@ export function ResearchDataPage() {
       <Section className="bg-slate-50">
         <Container>
           <div className="mx-auto max-w-4xl space-y-6 text-center">
-            <Label>How Research Projects Begin</Label>
-            <Heading>Structured steps from question to secure delivery</Heading>
+            <Label>How Licensing Works</Label>
+            <Heading>From request to licence in five steps</Heading>
             <Subheading>
-              A transparent project timeline connects research planning, governance, dataset preparation and delivery.
+              Every licence traces back to the data owner, with clear rights and provenance. BCONZ does the work around
+              it: sourcing, feasibility, quality checks and compliance.
             </Subheading>
           </div>
 
           <div className="mt-12 overflow-hidden rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
-            <div className="grid gap-6 lg:grid-cols-3">
-              {projectSteps.map((step, index) => (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-5">
+              {licensingSteps.map((step, index) => (
                 <div key={step.title} className="rounded-[1.75rem] border border-slate-200 bg-slate-50 p-6">
                   <div className="flex h-12 w-12 items-center justify-center rounded-3xl bg-slate-950 text-white">
                     {index + 1}
@@ -354,18 +348,64 @@ export function ResearchDataPage() {
       <Section>
         <Container>
           <div className="mx-auto max-w-4xl space-y-6 text-center">
-            <Label>Responsible Governance</Label>
-            <Heading>Governance that supports trusted research partnerships</Heading>
-            <Subheading>
-              Controls and oversight are built into every research engagement without calling out specific laws.
-            </Subheading>
+            <Label>Licence Models</Label>
+            <Heading>Licences that fit how you use the data</Heading>
+          </div>
+
+          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-5">
+            {licenceModels.map((item) => (
+              <Card key={item.title} className="p-6">
+                <p className="text-lg font-semibold text-slate-950">{item.title}</p>
+                <p className="mt-3 text-sm leading-6 text-slate-600">{item.description}</p>
+              </Card>
+            ))}
+          </div>
+        </Container>
+      </Section>
+
+      <Section className="bg-slate-50">
+        <Container>
+          <div className="mx-auto max-w-4xl space-y-6 text-center">
+            <Label>Custom Cohorts</Label>
+            <Heading>Custom cohorts, built to your specification</Heading>
           </div>
 
           <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {governanceFeatures.map((feature) => (
-              <Card key={feature.title} className="p-6">
-                <p className="text-lg font-semibold text-slate-950">{feature.title}</p>
-                <p className="mt-3 text-sm leading-6 text-slate-600">{feature.description}</p>
+            {cohortSteps.map((step, index) => (
+              <div key={step.title} className="rounded-[1.75rem] border border-slate-200 bg-white p-6">
+                <div className="flex h-12 w-12 items-center justify-center rounded-3xl bg-slate-950 text-white">
+                  {index + 1}
+                </div>
+                <p className="mt-4 text-lg font-semibold text-slate-950">{step.title}</p>
+                <p className="mt-3 text-sm leading-6 text-slate-600">{step.description}</p>
+              </div>
+            ))}
+          </div>
+
+          <p className="mx-auto mt-8 max-w-3xl text-center text-sm leading-6 text-slate-600">
+            Cohorts we source include rare paired imaging studies, CT cohorts by indication, oncology tumour and ctDNA
+            sequencing with outcomes, and longitudinal clinical records.
+          </p>
+        </Container>
+      </Section>
+
+      <Section>
+        <Container>
+          <div className="mx-auto max-w-4xl space-y-6 text-center">
+            <Label>Quality and Compliance</Label>
+            <Heading>Quality and compliance you can rely on</Heading>
+          </div>
+
+          <div className="mt-12 grid gap-6 lg:grid-cols-2">
+            {[
+              { title: "Quality checks", items: qualityChecks },
+              { title: "Compliance", items: complianceChecks },
+            ].map((group) => (
+              <Card key={group.title} className="p-8">
+                <p className="text-lg font-semibold text-slate-950">{group.title}</p>
+                <ul className="mt-4 list-disc space-y-2 pl-5 text-sm leading-6 text-slate-600">
+                  {group.items.map((item) => <li key={item}>{item}</li>)}
+                </ul>
               </Card>
             ))}
           </div>
