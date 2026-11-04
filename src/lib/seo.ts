@@ -94,7 +94,7 @@ export const pageSeo: Record<PublicRoute, PageSeo> = {
     path: "/data-partners",
     title: "Data Collaboration Programme for Hospitals and Labs",
     description:
-      "Contribute de-identified real-world data for research: readiness assessment, de-identification, harmonisation, hosting and a share of licensing revenue.",
+      "License de-identified healthcare data to vetted research and AI teams. Buyer screening, pricing and compliance handled. BCONZ never hosts your data.",
     keywords: [
       "healthcare data partnership program",
       "monetize healthcare data",

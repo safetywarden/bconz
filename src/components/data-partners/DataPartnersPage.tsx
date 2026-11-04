@@ -6,41 +6,57 @@ import { Container } from "@/components/layout/container";
 import { Section } from "@/components/layout/section";
 import { Icon } from "@/components/ui/icon";
 
-// The data collaboration programme: what a contributing organisation gets,
+// The data collaboration programme: what a licensing organisation gets,
 // and what taking part requires.
 const programme = [
-  {
-    title: "Data readiness assessment",
-    description: "HARM runs read-only inside your systems and shows what your data can support before anything is shared.",
-    href: "/platform/harm",
-  },
-  {
-    title: "De-identification and structuring",
-    description: "Identifiers removed from records, reports and images, and free text structured, to the standard your governance requires.",
-  },
-  {
-    title: "Harmonisation to a common data model",
-    description: "Mapping to models such as OMOP, so researchers can analyse your data alongside other sources.",
-  },
-  {
-    title: "Secure transfer and hosting",
-    description: "Encrypted transfer and secure hosting, with access controlled for each approved use.",
-  },
   {
     title: "Demand intelligence with DIA",
     description: "See which organisations have published a need for data like yours, and which of those needs your dataset meets.",
     href: "/platform/dia",
   },
   {
-    title: "A share of licensing revenue",
-    description: "When BCONZ licenses de-identified data you contributed, you receive a share of the revenue, set by data type and higher where you provide regular updates.",
+    title: "No hosting by BCONZ",
+    description: "BCONZ does not buy or host your data. You decide what is licensed, to whom and on what terms.",
+  },
+  {
+    title: "Licence income for your data",
+    description: "You earn licence income each time your data is licensed, under the terms of your partnership agreement. Where we refer a buyer to you, our fee is paid only after the buyer pays you.",
+  },
+  {
+    title: "Pricing and negotiation",
+    description: "We quote above your floor price, report every offer to you and protect your base price.",
+  },
+];
+
+// Data curation services for hospitals and laboratories; only HARM is live so far.
+const curation = [
+  {
+    title: "Data readiness assessment",
+    description: "HARM runs read-only inside your systems and shows what your data can support before anything is shared.",
+    href: "/platform/harm",
+    available: true,
+  },
+  {
+    title: "De-identification and structuring",
+    description: "Identifiers removed from records, reports and images, and free text structured, to the standard your governance requires.",
+    available: false,
+  },
+  {
+    title: "Harmonisation to a common data model",
+    description: "Mapping to models such as OMOP, so researchers can analyse your data alongside other sources.",
+    available: false,
+  },
+  {
+    title: "Quality review",
+    description: "Completeness, consistency and image–report matching checked, with a report your governance team can use.",
+    available: false,
   },
 ];
 
 const requirements = [
-  "A registered organisation (a hospital, health system, imaging or diagnostic provider, laboratory, biobank or research institute) with the legal right to contribute its data for de-identified research and commercial use.",
+  "A registered organisation (a hospital, health system, imaging or diagnostic provider, laboratory, biobank or research institute) with the legal right to license its data for de-identified research and commercial use.",
   "Data that meets BCONZ's quality requirements for its type: for example, clinical records with demographics, diagnoses and free-text notes; medical images with the radiologist's report; or molecular results with the raw files. We assess this with you first.",
-  "Where your data grows over time, regular updates through our secure transfer. Longitudinal data is what researchers value most.",
+  "Where your data grows over time, regular updates, delivered under each licence. Longitudinal data is what researchers value most.",
   "Approval through your own governance or ethics process for the uses you agree to.",
 ];
 
@@ -122,13 +138,12 @@ const reasons = [
   },
 ];
 
-const processSteps = [
-  "Initial Discussion",
-  "Institution Assessment",
-  "Data Readiness Review",
-  "Governance Planning",
-  "Project Matching",
-  "Long-Term Collaboration",
+const dealSteps = [
+  { title: "Qualify", description: "We screen the buyer's need, use case, budget and country." },
+  { title: "Register", description: "We register the buyer with you by email before you are named." },
+  { title: "Evaluate", description: "NDA and evaluation terms, with a free sample you approve." },
+  { title: "Price", description: "We quote above your floor price and report every offer to you." },
+  { title: "License", description: "The licence is signed, directly with you or through BCONZ as your agreement sets out, and the data is delivered." },
 ];
 
 const readiness = [
@@ -142,27 +157,35 @@ const readiness = [
   "Metadata & Cohort Discovery",
 ];
 
-const governance = [
+const compliance = [
   {
-    title: "Institution-Led Decisions",
-    description: "Each project is reviewed in accordance with institutional governance processes.",
+    title: "Territory",
+    description: "No licences to countries of concern under the US DOJ bulk sensitive data rule (28 CFR Part 202), including China, Russia, Iran, North Korea, Cuba and Venezuela, or to sanctioned countries.",
   },
   {
-    title: "Purpose-Specific Collaboration",
-    description: "Research objectives define project scope and data requirements.",
+    title: "Buyer screening",
+    description: "Identity, ownership, intended use and hosting country are checked before you are named. No buyers 50% or more owned or controlled from restricted countries.",
   },
   {
-    title: "Privacy by Design",
-    description: "Support responsible handling of healthcare information throughout the research lifecycle.",
+    title: "De-identification",
+    description: "To HIPAA Safe Harbor, or a stricter standard your governance requires.",
   },
   {
-    title: "Transparent Engagement",
-    description: "Clear documentation, defined responsibilities and collaborative decision-making.",
+    title: "Evaluation terms",
+    description: "Samples for evaluation only: no training, no re-identification, deletion within 90 days.",
+  },
+  {
+    title: "Licence protections",
+    description: "No onward transfer, no re-identification and no access from restricted countries.",
+  },
+  {
+    title: "Non-circumvention",
+    description: "Every introduction is registered in writing and protected.",
   },
 ];
 
 const benefits = [
-  "Share in Licensing Revenue",
+  "Earn Licensing Revenue",
   "Advance Research",
   "Support Precision Medicine",
   "Expand Scientific Collaboration",
@@ -175,7 +198,7 @@ export const dataPartnerFaqs = [
   {
     question: "How do data partners benefit financially?",
     answer:
-      "Through a revenue share each time BCONZ licenses de-identified data you contributed. The share depends on the data type and on whether you provide regular longitudinal updates, and is set out in your partnership agreement.",
+      "You earn licence income each time your de-identified data is licensed. Depending on your agreement, you either license directly to the buyer and pay BCONZ a fee only after the buyer pays you, or BCONZ licenses on your behalf and pays you a share of the revenue.",
   },
   {
     question: "What kinds of data can we contribute?",
@@ -200,7 +223,7 @@ export const dataPartnerFaqs = [
   {
     question: "Does BCONZ require exclusive partnerships?",
     answer:
-      "No. Partnerships are tailored to each institution's goals and do not require exclusivity on this public-facing page.",
+      "No. Partnerships are non-exclusive.",
   },
   {
     question: "How are research projects evaluated?",
@@ -286,7 +309,7 @@ export function DataPartnersPage() {
             </Subheading>
           </div>
 
-          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {programme.map((item) => (
               <Card key={item.title} className="p-6">
                 <p className="text-lg font-semibold text-slate-950">{item.title}</p>
@@ -311,6 +334,44 @@ export function DataPartnersPage() {
             <div className="mt-6">
               <Button variant="primary" size="large" as="a" href="/contact">
                 Discuss a data collaboration
+              </Button>
+            </div>
+          </div>
+
+          <div id="data-curation" className="mt-20 scroll-mt-24">
+            <div className="mx-auto max-w-4xl space-y-6 text-center">
+              <Label>Data Curation Services</Label>
+              <Heading>Make your data research-ready, whether or not you license it</Heading>
+              <Subheading>
+                BCONZ is adding data curation services for hospitals and laboratories. You choose where the work happens:
+                inside your own systems, or in an approved cloud environment where data is processed and then deleted.
+                BCONZ does not host your data.
+              </Subheading>
+            </div>
+
+            <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              {curation.map((item) => (
+                <Card key={item.title} className="p-6">
+                  <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${item.available ? "bg-teal-50 text-teal-700" : "bg-slate-100 text-slate-600"}`}>
+                    {item.available ? "Available now" : "Coming soon"}
+                  </span>
+                  <p className="mt-4 text-lg font-semibold text-slate-950">{item.title}</p>
+                  <p className="mt-3 text-sm leading-6 text-slate-600">{item.description}</p>
+                  {item.href ? (
+                    <Link href={item.href} className="mt-4 inline-flex text-sm font-semibold text-slate-950 underline underline-offset-4">
+                      Learn more
+                    </Link>
+                  ) : null}
+                </Card>
+              ))}
+            </div>
+
+            <div className="mt-8 flex flex-col items-center gap-4 text-center">
+              <p className="text-sm leading-6 text-slate-600">
+                Curation is a separate service. You don&apos;t need it to license your data through BCONZ.
+              </p>
+              <Button variant="secondary" size="large" as="a" href="/contact">
+                Register interest
               </Button>
             </div>
           </div>
@@ -372,22 +433,22 @@ export function DataPartnersPage() {
       <Section className="bg-slate-50">
         <Container>
           <div className="mx-auto max-w-4xl space-y-6 text-center">
-            <Label>How Partnerships Work</Label>
-            <Heading>Research collaboration built through a premium timeline</Heading>
+            <Label>How a Deal Runs</Label>
+            <Heading>How a deal runs, step by step</Heading>
             <Subheading>
-              Every partnership is tailored to the institution&apos;s governance framework, research priorities and available data assets.
+              You approve every buyer before a licence is signed.
             </Subheading>
           </div>
 
           <div className="mt-12 overflow-hidden rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
-            <div className="space-y-4">
-              {processSteps.map((step, index) => (
-                <div key={step} className="flex items-center gap-4 rounded-[1.75rem] border border-slate-200 bg-slate-50 p-6">
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-5">
+              {dealSteps.map((step, index) => (
+                <div key={step.title} className="rounded-[1.75rem] border border-slate-200 bg-slate-50 p-6">
                   <div className="flex h-12 w-12 items-center justify-center rounded-3xl bg-slate-950 text-white text-lg font-semibold">
                     {index + 1}
                   </div>
-                  <p className="text-base font-semibold text-slate-950">{step}</p>
-                  {index < processSteps.length - 1 ? <span className="ml-auto text-2xl text-slate-300">↓</span> : null}
+                  <p className="mt-4 text-lg font-semibold text-slate-950">{step.title}</p>
+                  <p className="mt-3 text-sm leading-6 text-slate-600">{step.description}</p>
                 </div>
               ))}
             </div>
@@ -440,15 +501,12 @@ export function DataPartnersPage() {
       <Section className="bg-slate-50">
         <Container>
           <div className="mx-auto max-w-4xl space-y-6 text-center">
-            <Label>Governance Principles</Label>
-            <Heading>Principles for responsible healthcare research partnerships</Heading>
-            <Subheading>
-              BCONZ partners with institutions through governance practices that respect institutional review and research purpose.
-            </Subheading>
+            <Label>Compliance</Label>
+            <Heading>Compliance is part of every deal</Heading>
           </div>
 
-          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {governance.map((item) => (
+          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {compliance.map((item) => (
               <Card key={item.title} className="p-6">
                 <p className="text-lg font-semibold text-slate-950">{item.title}</p>
                 <p className="mt-3 text-sm leading-6 text-slate-600">{item.description}</p>

@@ -20,6 +20,7 @@ export const AREA_OF_INTEREST_OPTIONS = [
   "Strategic Partnership",
   "Technology Partnership",
   "Scientific Collaboration",
+  "Data curation services",
   "Media or Speaking",
   "Other",
 ] as const;
