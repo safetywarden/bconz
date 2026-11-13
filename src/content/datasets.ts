@@ -195,7 +195,7 @@ export const areas: DatasetArea[] = [
       { q: "Which imaging modalities are available?", a: "X-ray, CT, MRI, ultrasound and echocardiography through BCONZ's partner networks. Availability, volume and population for a project are confirmed during feasibility." },
       { q: "Where does the imaging data come from?", a: "From BCONZ partner networks in the United States and India, including populations that are under-represented in public imaging datasets. Which sources fit a project is confirmed during feasibility." },
       { q: "Do the studies come with reports?", a: "Studies are paired with their clinical report where available, as text linked to the study. Report coverage for a project is confirmed during feasibility." },
-      { q: "Can we see a sample before committing?", a: "Where the data partner agrees, a small de-identified evaluation sample can be provided under an evaluation agreement." },
+      { q: "Can we see a sample before committing?", a: "Yes. Submit a research data request with Imaging selected and you'll see watermarked preview images straight away. If the data fits your project, a small de-identified evaluation sample can then be arranged under NDA with the data partner." },
       { q: "Is this a free dataset download?", a: "No. Access is licensed for a defined research or development purpose under a data use agreement, after feasibility and governance review." },
     ],
   },
