@@ -39,6 +39,11 @@ const nextConfig: NextConfig = {
         source: "/pia/:path*",
         headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
       },
+      {
+        // Partner preview images, shown on the request page only; keep them out of search and image results.
+        source: "/previews/:path*",
+        headers: [{ key: "X-Robots-Tag", value: "noindex, noimageindex" }],
+      },
     ];
   },
 };

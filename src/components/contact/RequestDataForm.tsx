@@ -5,6 +5,7 @@ import { FormStatus, type FormStatusState } from "@/components/forms/FormStatus"
 import { SubmitButton } from "@/components/forms/SubmitButton";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { ImagingPreviews } from "@/components/contact/ImagingPreviews";
 import { validateResearchRequest } from "@/lib/forms/ValidationHelpers";
 import { submitWeb3Form } from "@/lib/forms/web3forms";
 import type { ResearchRequestSchema } from "@/lib/forms/ResearchRequestSchema";
@@ -64,6 +65,7 @@ export function RequestDataForm() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [requestedImaging, setRequestedImaging] = useState(false);
   const statusRef = useRef<HTMLDivElement>(null);
 
   const formStatus: FormStatusState = success ? "success" : submitting ? "submitting" : errors.form ? "error" : "idle";
@@ -111,6 +113,7 @@ export function RequestDataForm() {
         return;
       }
 
+      setRequestedImaging(form.dataModalities.includes("Imaging"));
       setSuccess(true);
       setForm(initialFormState);
     } catch {
@@ -128,6 +131,7 @@ export function RequestDataForm() {
           successTitle={requestDataSuccessTitle}
           successMessage={requestDataSuccessMessage}
         />
+        {requestedImaging ? <ImagingPreviews /> : null}
       </Card>
     );
   }

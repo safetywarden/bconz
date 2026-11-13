@@ -32,6 +32,9 @@ export default function RequestDataRoute() {
                   Include your research objective, disease area, target cohort, relevant data modalities and preferred collaboration timeline. Do not include patient-identifiable information in this form.
                 </p>
                 <p>
+                  Requesting imaging data? Select <strong className="font-semibold text-slate-950">Imaging</strong> under data modalities. After you submit, you&apos;ll see watermarked preview images showing what the data looks like.
+                </p>
+                <p>
                   After submission, BCONZ will review the research fit and contact you using the details provided. You can also review our <Link href="/data" className="font-semibold text-slate-950 underline underline-offset-4">research data capabilities</Link>, <Link href="/solutions" className="font-semibold text-slate-950 underline underline-offset-4">solution pathways</Link> and <Link href="/privacy" className="font-semibold text-slate-950 underline underline-offset-4">privacy commitments</Link> before submitting.
                 </p>
               </div>
